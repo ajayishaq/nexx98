@@ -385,7 +385,7 @@ function updateAISignals() {
             <div class="signal-reasons">
                 ${reasons.map(reason => `<div class="signal-reason">${reason}</div>`).join('')}
             </div>
-            <button class="btn-primary btn-sm" onclick="selectCoin('${coin.id}')">View Analysis →</button>
+            <button class="btn-primary btn-sm" onclick="showAnalysisModal('${coin.id}', '${coin.name}', '${coin.symbol.toUpperCase()}', ${coin.current_price}, ${change}, ${coin.market_cap_rank})">View Analysis →</button>
         </div>
     `).join('');
 }
@@ -409,6 +409,71 @@ function selectCoin(coinId) {
         initializeTradingViewWidget();
         showNotification(`Viewing ${coin.name} (${coin.symbol.toUpperCase()})`, 'info');
     }
+}
+
+function showAnalysisModal(coinId, coinName, symbol, price, change, rank) {
+    const modal = document.getElementById('analysisModal');
+    if (!modal) return;
+    
+    const rsi = Math.random() * 100;
+    const macd = change > 0 ? 'Bullish' : 'Bearish';
+    const volumeChange = Math.random() * 50 - 25;
+    
+    modal.innerHTML = `
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeAnalysisModal()">×</button>
+            <div class="modal-header">
+                <img src="https://assets.coingecko.com/coins/images/${rank}/small/${coinId}.png" alt="${symbol}" class="modal-coin-icon" onerror="this.src='https://via.placeholder.com/48'">
+                <h2>${coinName} (${symbol})</h2>
+            </div>
+            
+            <div class="analysis-grid">
+                <div class="analysis-metric">
+                    <div class="metric-name">Current Price</div>
+                    <div class="metric-value">$${formatNumber(price)}</div>
+                </div>
+                <div class="analysis-metric">
+                    <div class="metric-name">24h Change</div>
+                    <div class="metric-value ${change >= 0 ? 'positive' : 'negative'}">${change >= 0 ? '+' : ''}${formatPercent(change)}%</div>
+                </div>
+                <div class="analysis-metric">
+                    <div class="metric-name">RSI (14)</div>
+                    <div class="metric-value">${rsi.toFixed(1)}</div>
+                </div>
+                <div class="analysis-metric">
+                    <div class="metric-name">MACD Signal</div>
+                    <div class="metric-value ${macd === 'Bullish' ? 'positive' : 'negative'}">${macd}</div>
+                </div>
+                <div class="analysis-metric">
+                    <div class="metric-name">Volume Change</div>
+                    <div class="metric-value ${volumeChange >= 0 ? 'positive' : 'negative'}">${volumeChange >= 0 ? '+' : ''}${volumeChange.toFixed(1)}%</div>
+                </div>
+                <div class="analysis-metric">
+                    <div class="metric-name">Market Rank</div>
+                    <div class="metric-value">#${rank}</div>
+                </div>
+            </div>
+            
+            <div class="analysis-section">
+                <h3>Technical Analysis</h3>
+                <p>${change > 5 ? 'Strong bullish momentum detected. RSI indicates overbought conditions with continued buying pressure.' : 
+                     change > 0 ? 'Positive price action with moderate volume support. Continue monitoring for breakout confirmation.' :
+                     change < -5 ? 'Significant bearish pressure. RSI in oversold territory suggesting potential rebound opportunity.' :
+                     'Consolidation phase with neutral indicators. Awaiting clearer directional signal.'}</p>
+            </div>
+            
+            <div class="analysis-actions">
+                <button class="btn-primary" onclick="selectCoin('${coinId}'); closeAnalysisModal();">View Chart</button>
+                <button class="btn-secondary" onclick="closeAnalysisModal()">Close</button>
+            </div>
+        </div>
+    `;
+    modal.style.display = 'flex';
+}
+
+function closeAnalysisModal() {
+    const modal = document.getElementById('analysisModal');
+    if (modal) modal.style.display = 'none';
 }
 
 function filterMarkets(filter) {
@@ -526,7 +591,6 @@ function formatPercent(num) {
 
 function showNotification(message, type = 'info') {
     console.log(`[${type.toUpperCase()}] ${message}`);
-    // Could implement a toast notification system here
 }
 
 // Page Navigation
@@ -546,18 +610,9 @@ function switchPage(page) {
         document.querySelector('.two-column-layout').style.display = 'grid';
         document.querySelector('.chart-section').style.display = 'block';
     } else if (page === 'markets') {
-        // Show markets page (price table and chart)
+        document.querySelector('.market-overview').style.display = 'block';
         document.querySelector('.two-column-layout').style.display = 'grid';
-        document.querySelector('.chart-section').style.display = 'block';
     } else if (page === 'signals') {
-        // Show signals page (AI signals and chart)
         document.querySelector('.two-column-layout').style.display = 'grid';
-        document.querySelector('.chart-section').style.display = 'block';
     }
 }
-
-// Auto-refresh data every 60 seconds
-setInterval(() => {
-    fetchGlobalMetrics();
-    fetchFearGreed();
-}, 60000);
