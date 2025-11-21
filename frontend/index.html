@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Krypticks - Live Crypto Markets & AI Insights</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">KRYPTICKS</div>
+            
+            <nav class="nav-links">
+                <a href="#dashboard" class="nav-link active" data-page="dashboard">Dashboard</a>
+                <a href="#markets" class="nav-link" data-page="markets">Markets</a>
+                <a href="#signals" class="nav-link" data-page="signals">Signals</a>
+            </nav>
+            
+            <div class="header-right">
+                <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+                    <svg class="theme-icon sun-icon" width="20" height="20" viewBox="0 0 20 20" fill="none">
+                        <circle cx="10" cy="10" r="5" stroke="currentColor" stroke-width="2"/>
+                        <path d="M10 2V4M10 16V18M18 10H16M4 10H2M15.66 4.34L14.24 5.76M5.76 14.24L4.34 15.66M15.66 15.66L14.24 14.24M5.76 5.76L4.34 4.34" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                    <svg class="theme-icon moon-icon" width="20" height="20" viewBox="0 0 20 20" fill="none">
+                        <path d="M17 10.5C16.1 14.5 12.5 17.5 8.5 17.5C4.5 17.5 1 14 1 10C1 6 4 2.5 8 1.5C7 3 6.5 4.5 6.5 6.5C6.5 10.5 9.5 13.5 13.5 13.5C15 13.5 16.5 13 17 10.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="main-container">
+        <!-- Hero Section -->
+        <section class="hero-section">
+            <h1 class="hero-title">Live <span class="gradient-text">Crypto</span> Markets</h1>
+            <p class="hero-subtitle">Real-time prices, AI insights, smart signals.</p>
+        </section>
+
+        <!-- Global Metrics -->
+        <section class="metrics-section">
+            <div class="metric-card">
+                <div class="metric-label">Total Market Cap</div>
+                <div class="metric-value" id="totalMarketCap">$2.84T</div>
+                <div class="metric-change positive" id="marketCapChange">+2.1%</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">BTC Dominance</div>
+                <div class="metric-value" id="btcDominance">54.2%</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Fear & Greed</div>
+                <div class="metric-value" id="fearGreedValue">68</div>
+                <div class="metric-badge greed" id="fearGreedLabel">Greed</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">24h Volume</div>
+                <div class="metric-value" id="totalVolume">$98B</div>
+            </div>
+        </section>
+
+        <!-- Market Overview Cards -->
+        <section class="market-overview">
+            <h2 class="section-title">Market Overview</h2>
+            <div class="coin-grid" id="coinGrid">
+                <!-- Coin cards will be dynamically inserted here -->
+                <div class="coin-card skeleton">
+                    <div class="skeleton-shimmer"></div>
+                </div>
+                <div class="coin-card skeleton">
+                    <div class="skeleton-shimmer"></div>
+                </div>
+                <div class="coin-card skeleton">
+                    <div class="skeleton-shimmer"></div>
+                </div>
+                <div class="coin-card skeleton">
+                    <div class="skeleton-shimmer"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Two Column Layout -->
+        <div class="two-column-layout">
+            <!-- Left: Price Table -->
+            <section class="price-table-section">
+                <div class="section-header">
+                    <h2 class="section-title">Live Prices</h2>
+                    <select class="filter-select" id="marketFilter">
+                        <option value="all">All Markets</option>
+                        <option value="favorites">Favorites</option>
+                        <option value="gainers">Top Gainers</option>
+                        <option value="losers">Top Losers</option>
+                    </select>
+                </div>
+                <div class="price-table-container">
+                    <table class="price-table">
+                        <thead>
+                            <tr>
+                                <th>Coin</th>
+                                <th>Price</th>
+                                <th>24h Change</th>
+                                <th>Volume</th>
+                                <th>Market Cap</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="priceTableBody">
+                            <!-- Rows will be dynamically inserted -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Right: AI Signal Panel & Watchlist -->
+            <aside class="sidebar">
+                <!-- AI Signal Panel -->
+                <div class="ai-signal-panel">
+                    <h3 class="panel-title">🧠 AI Signals</h3>
+                    <div class="signal-cards" id="signalCards">
+                        <!-- Signal cards will be dynamically inserted -->
+                        <div class="signal-card-item">
+                            <div class="signal-header">
+                                <div class="signal-coin">
+                                    <img src="https://assets.coingecko.com/coins/images/1/small/bitcoin.png" alt="BTC" class="coin-icon-sm">
+                                    <span>BTC/USD</span>
+                                </div>
+                                <span class="signal-badge strong-buy">STRONG BUY</span>
+                            </div>
+                            <div class="signal-reasons">
+                                <div class="signal-reason">• RSI oversold recovery</div>
+                                <div class="signal-reason">• Volume spike +31%</div>
+                                <div class="signal-reason">• Bullish MACD crossover</div>
+                            </div>
+                            <button class="btn-primary btn-sm">View Analysis →</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Watchlist Widget -->
+                <div class="watchlist-widget">
+                    <div class="watchlist-header">
+                        <h3 class="panel-title">⭐ Watchlist</h3>
+                        <button class="btn-icon" id="addWatchlistBtn">+</button>
+                    </div>
+                    <div class="watchlist-items" id="watchlistItems">
+                        <!-- Watchlist items will be dynamically inserted -->
+                    </div>
+                </div>
+            </aside>
+        </div>
+
+        <!-- Chart Section -->
+        <section class="chart-section">
+            <div class="chart-header">
+                <h2 class="section-title">Price Chart</h2>
+                <div class="chart-controls">
+                    <div class="time-selector">
+                        <button class="time-btn" data-period="1H">1H</button>
+                        <button class="time-btn active" data-period="24H">24H</button>
+                        <button class="time-btn" data-period="7D">7D</button>
+                        <button class="time-btn" data-period="1M">1M</button>
+                        <button class="time-btn" data-period="1Y">1Y</button>
+                    </div>
+                </div>
+            </div>
+            <div class="chart-container">
+                <!-- TradingView Widget -->
+                <div id="tradingview_widget"></div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-text">KRYPTICKS © 2025</div>
+        </div>
+    </footer>
+
+    <!-- TradingView Widget Script -->
+    <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
