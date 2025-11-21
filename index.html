@@ -1,1091 +1,190 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nexus Alpha - Trade the signal. Not the noise.</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: #0A0E27;
-            color: #E8F0FF;
-            overflow-x: hidden;
-        }
-
-        .starfield {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 0;
-            opacity: 0.4;
-        }
-
-        .star {
-            position: absolute;
-            width: 2px;
-            height: 2px;
-            background: #7B8AB8;
-            border-radius: 50%;
-            animation: twinkle 3s infinite;
-        }
-
-        @keyframes twinkle {
-            0%, 100% { opacity: 0.3; }
-            50% { opacity: 1; }
-        }
-
-        .container {
-            position: relative;
-            z-index: 1;
-        }
-
-        /* Top Navigation */
-        .navbar {
-            background: rgba(20, 27, 61, 0.8);
-            backdrop-filter: blur(12px);
-            border-bottom: 1px solid #1E2A4A;
-            padding: 16px 32px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-
-        .logo {
-            font-size: 24px;
-            font-weight: 700;
-            background: linear-gradient(135deg, #00FFA3, #00D4FF);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            letter-spacing: -0.5px;
-        }
-
-        .nav-links {
-            display: flex;
-            gap: 32px;
-            list-style: none;
-        }
-
-        .nav-links a {
-            color: #7B8AB8;
-            text-decoration: none;
-            font-size: 14px;
-            font-weight: 500;
-            transition: color 0.3s;
-        }
-
-        .nav-links a:hover {
-            color: #00FFA3;
-        }
-
-        .nav-right {
-            display: flex;
-            gap: 16px;
-            align-items: center;
-        }
-
-        .search-box {
-            background: rgba(30, 42, 74, 0.5);
-            border: 1px solid #1E2A4A;
-            border-radius: 8px;
-            padding: 8px 16px;
-            color: #E8F0FF;
-            font-size: 14px;
-            width: 200px;
-        }
-
-        .search-box::placeholder {
-            color: #7B8AB8;
-        }
-
-        /* Main Layout */
-        .main-layout {
-            display: grid;
-            grid-template-columns: 280px 1fr 320px;
-            gap: 24px;
-            padding: 24px;
-            max-width: 1920px;
-            margin: 0 auto;
-        }
-
-        /* Left Sidebar */
-        .sidebar-left {
-            background: rgba(20, 27, 61, 0.6);
-            backdrop-filter: blur(12px);
-            border: 1px solid #1E2A4A;
-            border-radius: 16px;
-            padding: 24px;
-            height: fit-content;
-        }
-
-        .section-title {
-            font-size: 12px;
-            font-weight: 600;
-            color: #7B8AB8;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 16px;
-        }
-
-        .metric-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 8px 0;
-            font-size: 14px;
-            border-bottom: 1px solid rgba(30, 42, 74, 0.5);
-        }
-
-        .metric-label {
-            color: #7B8AB8;
-        }
-
-        .metric-value {
-            color: #E8F0FF;
-            font-weight: 500;
-        }
-
-        .top-mover {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px;
-            margin: 8px 0;
-            background: rgba(30, 42, 74, 0.3);
-            border-radius: 8px;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
-
-        .top-mover:hover {
-            background: rgba(30, 42, 74, 0.6);
-        }
-
-        .mover-name {
-            font-size: 14px;
-            font-weight: 600;
-        }
-
-        .mover-change {
-            font-size: 14px;
-            font-weight: 600;
-        }
-
-        .positive {
-            color: #00FFA3;
-        }
-
-        .negative {
-            color: #FF1744;
-        }
-
-        .watchlist-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 12px;
-            margin: 8px 0;
-            background: rgba(30, 42, 74, 0.3);
-            border-radius: 8px;
-            cursor: pointer;
-        }
-
-        .add-coin-btn {
-            width: 100%;
-            padding: 12px;
-            background: rgba(0, 255, 163, 0.1);
-            border: 1px solid #00FFA3;
-            color: #00FFA3;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 600;
-            margin-top: 12px;
-            transition: all 0.3s;
-        }
-
-        .add-coin-btn:hover {
-            background: rgba(0, 255, 163, 0.2);
-        }
-
-        /* Center Panel */
-        .main-panel {
-            background: rgba(20, 27, 61, 0.6);
-            backdrop-filter: blur(12px);
-            border: 1px solid #1E2A4A;
-            border-radius: 16px;
-            padding: 32px;
-        }
-
-        .panel-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 32px;
-        }
-
-        .panel-title {
-            font-size: 24px;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .filter-dropdown {
-            background: rgba(30, 42, 74, 0.5);
-            border: 1px solid #1E2A4A;
-            border-radius: 8px;
-            padding: 8px 16px;
-            color: #E8F0FF;
-            font-size: 14px;
-            cursor: pointer;
-        }
-
-        /* Signal Cards */
-        .signal-card {
-            background: rgba(30, 42, 74, 0.4);
-            border: 1px solid #1E2A4A;
-            border-radius: 12px;
-            padding: 24px;
-            margin-bottom: 24px;
-            transition: all 0.3s;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .signal-card::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 4px;
-            height: 100%;
-            background: #00FFA3;
-        }
-
-        .signal-card.strong-buy::before {
-            background: linear-gradient(180deg, #00FFA3, #00D4FF);
-            box-shadow: 0 0 20px rgba(0, 255, 163, 0.5);
-            animation: pulse 2s infinite;
-        }
-
-        .signal-card.buy::before {
-            background: #00FFA3;
-        }
-
-        .signal-card.hold::before {
-            background: #FFB800;
-        }
-
-        .signal-card.sell::before {
-            background: #FF1744;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.6; }
-        }
-
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 16px;
-        }
-
-        .coin-info {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-        }
-
-        .coin-symbol {
-            font-size: 24px;
-            font-weight: 700;
-        }
-
-        .signal-badge {
-            padding: 6px 12px;
-            border-radius: 6px;
-            font-size: 12px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .signal-badge.strong-buy {
-            background: rgba(0, 255, 163, 0.2);
-            color: #00FFA3;
-        }
-
-        .signal-badge.buy {
-            background: rgba(0, 255, 163, 0.15);
-            color: #00FFA3;
-        }
-
-        .signal-badge.hold {
-            background: rgba(255, 184, 0, 0.2);
-            color: #FFB800;
-        }
-
-        .conviction-score {
-            font-size: 32px;
-            font-weight: 700;
-            background: linear-gradient(135deg, #00FFA3, #00D4FF);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .price-info {
-            font-size: 20px;
-            font-weight: 600;
-            margin-bottom: 16px;
-        }
-
-        .price-change {
-            font-size: 16px;
-            margin-left: 12px;
-        }
-
-        .signal-details {
-            display: grid;
-            gap: 8px;
-            margin-bottom: 16px;
-        }
-
-        .detail-item {
-            display: flex;
-            align-items: flex-start;
-            gap: 8px;
-            font-size: 14px;
-            color: #7B8AB8;
-        }
-
-        .detail-icon {
-            color: #00FFA3;
-            margin-top: 2px;
-        }
-
-        .risk-section {
-            display: flex;
-            justify-content: space-between;
-            padding: 16px;
-            background: rgba(10, 14, 39, 0.5);
-            border-radius: 8px;
-            margin-top: 16px;
-            flex-wrap: wrap;
-            gap: 16px;
-        }
-
-        .risk-item {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-
-        .risk-label {
-            font-size: 11px;
-            color: #7B8AB8;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .risk-value {
-            font-size: 14px;
-            font-weight: 600;
-        }
-
-        .card-actions {
-            display: flex;
-            gap: 12px;
-            margin-top: 16px;
-        }
-
-        .btn {
-            padding: 10px 20px;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            border: none;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, #00FFA3, #00D4FF);
-            color: #0A0E27;
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(0, 255, 163, 0.3);
-        }
-
-        .btn-secondary {
-            background: rgba(30, 42, 74, 0.5);
-            color: #E8F0FF;
-            border: 1px solid #1E2A4A;
-        }
-
-        .btn-secondary:hover {
-            background: rgba(30, 42, 74, 0.8);
-        }
-
-        /* Right Sidebar */
-        .sidebar-right {
-            display: flex;
-            flex-direction: column;
-            gap: 24px;
-        }
-
-        .widget {
-            background: rgba(20, 27, 61, 0.6);
-            backdrop-filter: blur(12px);
-            border: 1px solid #1E2A4A;
-            border-radius: 16px;
-            padding: 24px;
-        }
-
-        .chart-placeholder {
-            width: 100%;
-            height: 200px;
-            background: rgba(10, 14, 39, 0.5);
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #7B8AB8;
-            font-size: 14px;
-            margin-top: 16px;
-        }
-
-        .ai-insight {
-            background: rgba(0, 255, 163, 0.05);
-            border-left: 3px solid #00FFA3;
-            padding: 16px;
-            border-radius: 8px;
-            margin-top: 16px;
-            font-size: 14px;
-            line-height: 1.6;
-            color: #7B8AB8;
-        }
-
-        .catalyst-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 12px;
-            background: rgba(30, 42, 74, 0.3);
-            border-radius: 8px;
-            margin-top: 12px;
-            font-size: 14px;
-        }
-
-        .catalyst-time {
-            color: #FFB800;
-            font-weight: 600;
-        }
-
-        .loading-indicator {
-            display: inline-block;
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: #00FFA3;
-            animation: blink 1.5s infinite;
-            margin-left: 8px;
-        }
-
-        @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.3; }
-        }
-
-        /* Mobile Responsive */
-        @media (max-width: 1200px) {
-            .main-layout {
-                grid-template-columns: 1fr;
-            }
-
-            .sidebar-left,
-            .sidebar-right {
-                display: none;
-            }
-
-            .navbar {
-                padding: 16px;
-            }
-
-            .nav-links {
-                display: none;
-            }
-        }
-
-        /* Scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: #0A0E27;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: #1E2A4A;
-            border-radius: 4px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: #2A3A5A;
-        }
-
-        .time-updated {
-            font-size: 12px;
-            color: #7B8AB8;
-            margin-left: 8px;
-        }
-
-        .fear-greed-badge {
-            display: inline-block;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 12px;
-            font-weight: 600;
-        }
-
-        .fear-greed-greed {
-            background: rgba(0, 255, 163, 0.2);
-            color: #00FFA3;
-        }
-    </style>
+    <title>Krypticks - Live Crypto Markets & AI Insights</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <!-- Starfield Background -->
-    <div class="starfield" id="starfield"></div>
-
-    <div class="container">
-        <!-- Navigation -->
-        <nav class="navbar">
-            <div class="logo">NEXUS ALPHA</div>
-            <ul class="nav-links">
-                <li><a href="#markets">MARKETS</a></li>
-                <li><a href="#signals">SIGNALS</a></li>
-                <li><a href="#watchlist">WATCHLIST</a></li>
-                <li><a href="#portfolio">PORTFOLIO</a></li>
-                <li><a href="#research">RESEARCH</a></li>
-            </ul>
-            <div class="nav-right">
-                <input type="text" class="search-box" placeholder="BTC, ETH, SOL..." id="searchBox">
-                <span style="cursor: pointer;">⚙️</span>
-                <span style="cursor: pointer;">👤</span>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">KRYPTICKS</div>
+            
+            <nav class="nav-links">
+                <a href="#dashboard" class="nav-link active" data-page="dashboard">Dashboard</a>
+                <a href="#markets" class="nav-link" data-page="markets">Markets</a>
+                <a href="#signals" class="nav-link" data-page="signals">Signals</a>
+            </nav>
+            
+            <div class="header-right">
+                <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+                    <svg class="theme-icon sun-icon" width="20" height="20" viewBox="0 0 20 20" fill="none">
+                        <circle cx="10" cy="10" r="5" stroke="currentColor" stroke-width="2"/>
+                        <path d="M10 2V4M10 16V18M18 10H16M4 10H2M15.66 4.34L14.24 5.76M5.76 14.24L4.34 15.66M15.66 15.66L14.24 14.24M5.76 5.76L4.34 4.34" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                    <svg class="theme-icon moon-icon" width="20" height="20" viewBox="0 0 20 20" fill="none">
+                        <path d="M17 10.5C16.1 14.5 12.5 17.5 8.5 17.5C4.5 17.5 1 14 1 10C1 6 4 2.5 8 1.5C7 3 6.5 4.5 6.5 6.5C6.5 10.5 9.5 13.5 13.5 13.5C15 13.5 16.5 13 17 10.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
             </div>
-        </nav>
+        </div>
+    </header>
 
-        <!-- Main Layout -->
-        <div class="main-layout">
-            <!-- Left Sidebar -->
-            <aside class="sidebar-left">
-                <div>
-                    <div class="section-title">📊 GLOBAL METRICS</div>
-                    <div class="metric-row">
-                        <span class="metric-label">Total Market Cap</span>
-                        <span class="metric-value" id="totalMarketCap">$2.84T</span>
-                    </div>
-                    <div class="metric-row">
-                        <span class="metric-label">BTC Dominance</span>
-                        <span class="metric-value" id="btcDominance">54.2%</span>
-                    </div>
-                    <div class="metric-row">
-                        <span class="metric-label">Fear & Greed</span>
-                        <span class="metric-value">
-                            <span id="fearGreedIndex">68</span>
-                            <span class="fear-greed-badge fear-greed-greed">Greed</span>
-                        </span>
-                    </div>
-                    <div class="metric-row" style="border: none;">
-                        <span class="metric-label">Active Signals</span>
-                        <span class="metric-value positive" id="activeSignals">23</span>
-                    </div>
+    <!-- Main Container -->
+    <main class="main-container">
+        <!-- Hero Section -->
+        <section class="hero-section">
+            <h1 class="hero-title">Live <span class="gradient-text">Crypto</span> Markets</h1>
+            <p class="hero-subtitle">Real-time prices, AI insights, smart signals.</p>
+        </section>
+
+        <!-- Global Metrics -->
+        <section class="metrics-section">
+            <div class="metric-card">
+                <div class="metric-label">Total Market Cap</div>
+                <div class="metric-value" id="totalMarketCap">$2.84T</div>
+                <div class="metric-change positive" id="marketCapChange">+2.1%</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">BTC Dominance</div>
+                <div class="metric-value" id="btcDominance">54.2%</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Fear & Greed</div>
+                <div class="metric-value" id="fearGreedValue">68</div>
+                <div class="metric-badge greed" id="fearGreedLabel">Greed</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">24h Volume</div>
+                <div class="metric-value" id="totalVolume">$98B</div>
+            </div>
+        </section>
+
+        <!-- Market Overview Cards -->
+        <section class="market-overview">
+            <h2 class="section-title">Market Overview</h2>
+            <div class="coin-grid" id="coinGrid">
+                <!-- Coin cards will be dynamically inserted here -->
+                <div class="coin-card skeleton">
+                    <div class="skeleton-shimmer"></div>
                 </div>
-
-                <div style="margin-top: 32px;">
-                    <div class="section-title">🔥 TOP MOVERS (24H)</div>
-                    <div id="topMovers">
-                        <!-- Dynamic content -->
-                    </div>
+                <div class="coin-card skeleton">
+                    <div class="skeleton-shimmer"></div>
                 </div>
-
-                <div style="margin-top: 32px;">
-                    <div class="section-title">⚡ WATCHLIST</div>
-                    <div id="watchlistItems">
-                        <!-- Dynamic content -->
-                    </div>
-                    <button class="add-coin-btn" onclick="addToWatchlist()">+ Add Coin</button>
+                <div class="coin-card skeleton">
+                    <div class="skeleton-shimmer"></div>
                 </div>
-            </aside>
+                <div class="coin-card skeleton">
+                    <div class="skeleton-shimmer"></div>
+                </div>
+            </div>
+        </section>
 
-            <!-- Main Panel -->
-            <main class="main-panel">
-                <div class="panel-header">
-                    <h1 class="panel-title">
-                        🎯 LIVE SIGNAL FEED
-                        <span class="loading-indicator"></span>
-                    </h1>
-                    <select class="filter-dropdown" id="filterDropdown" onchange="filterSignals()">
-                        <option value="all">All Signals</option>
-                        <option value="strong-buy">Strong Buy Only</option>
-                        <option value="buy">Buy Signals</option>
-                        <option value="hold">Hold Positions</option>
+        <!-- Two Column Layout -->
+        <div class="two-column-layout">
+            <!-- Left: Price Table -->
+            <section class="price-table-section">
+                <div class="section-header">
+                    <h2 class="section-title">Live Prices</h2>
+                    <select class="filter-select" id="marketFilter">
+                        <option value="all">All Markets</option>
+                        <option value="favorites">Favorites</option>
+                        <option value="gainers">Top Gainers</option>
+                        <option value="losers">Top Losers</option>
                     </select>
                 </div>
-
-                <div id="signalFeed">
-                    <!-- Dynamic signal cards -->
+                <div class="price-table-container">
+                    <table class="price-table">
+                        <thead>
+                            <tr>
+                                <th>Coin</th>
+                                <th>Price</th>
+                                <th>24h Change</th>
+                                <th>Volume</th>
+                                <th>Market Cap</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="priceTableBody">
+                            <!-- Rows will be dynamically inserted -->
+                        </tbody>
+                    </table>
                 </div>
+            </section>
 
-                <button class="btn btn-secondary" style="width: 100%; margin-top: 24px;" onclick="loadMoreSignals()">
-                    Load More Signals
-                </button>
-            </main>
-
-            <!-- Right Sidebar -->
-            <aside class="sidebar-right">
-                <div class="widget">
-                    <div class="section-title">📈 MARKET PULSE</div>
-                    <div class="chart-placeholder" id="chartWidget">
-                        BTC/USD 15m Chart
-                        <br><small>Real-time chart integration</small>
+            <!-- Right: AI Signal Panel & Watchlist -->
+            <aside class="sidebar">
+                <!-- AI Signal Panel -->
+                <div class="ai-signal-panel">
+                    <h3 class="panel-title">🧠 AI Signals</h3>
+                    <div class="signal-cards" id="signalCards">
+                        <!-- Signal cards will be dynamically inserted -->
+                        <div class="signal-card-item">
+                            <div class="signal-header">
+                                <div class="signal-coin">
+                                    <img src="https://assets.coingecko.com/coins/images/1/small/bitcoin.png" alt="BTC" class="coin-icon-sm">
+                                    <span>BTC/USD</span>
+                                </div>
+                                <span class="signal-badge strong-buy">STRONG BUY</span>
+                            </div>
+                            <div class="signal-reasons">
+                                <div class="signal-reason">• RSI oversold recovery</div>
+                                <div class="signal-reason">• Volume spike +31%</div>
+                                <div class="signal-reason">• Bullish MACD crossover</div>
+                            </div>
+                            <button class="btn-primary btn-sm">View Analysis →</button>
+                        </div>
                     </div>
                 </div>
 
-                <div class="widget">
-                    <div class="section-title">🧠 AI INSIGHTS</div>
-                    <div class="ai-insight" id="aiInsight">
-                        Analyzing market structure...
+                <!-- Watchlist Widget -->
+                <div class="watchlist-widget">
+                    <div class="watchlist-header">
+                        <h3 class="panel-title">⭐ Watchlist</h3>
+                        <button class="btn-icon" id="addWatchlistBtn">+</button>
                     </div>
-                </div>
-
-                <div class="widget">
-                    <div class="section-title">⏰ UPCOMING CATALYSTS</div>
-                    <div id="catalystsList">
-                        <!-- Dynamic content -->
+                    <div class="watchlist-items" id="watchlistItems">
+                        <!-- Watchlist items will be dynamically inserted -->
                     </div>
                 </div>
             </aside>
         </div>
-    </div>
 
-    <script>
-        // Starfield generation
-        function createStarfield() {
-            const starfield = document.getElementById('starfield');
-            for (let i = 0; i < 100; i++) {
-                const star = document.createElement('div');
-                star.className = 'star';
-                star.style.left = Math.random() * 100 + '%';
-                star.style.top = Math.random() * 100 + '%';
-                star.style.animationDelay = Math.random() * 3 + 's';
-                starfield.appendChild(star);
-            }
-        }
-
-        // Sample data
-        const signals = [
-            {
-                coin: 'SOL',
-                name: 'Solana',
-                price: 238.12,
-                change: 4.2,
-                signal: 'strong-buy',
-                conviction: 92,
-                updated: '2m ago',
-                details: [
-                    'RSI: 34 (Oversold recovery zone)',
-                    'Volume spike: +31% vs 7D avg',
-                    'MACD: Bullish crossover confirmed',
-                    'Sentiment: 73% bullish (X/Reddit)',
-                    'Exchange outflows: -8,400 SOL (whale accumulation)'
-                ],
-                risk: 'Medium',
-                target: '$265',
-                stop: '$228',
-                action: 'DCA entry over next 4–8 hours. Consider adding on dips to $232.'
-            },
-            {
-                coin: 'RNDR',
-                name: 'Render Network',
-                price: 7.42,
-                change: 18.4,
-                signal: 'buy',
-                conviction: 81,
-                updated: '5m ago',
-                details: [
-                    'RSI: 68 (Strong momentum, approaching overbought)',
-                    'Volume: +94% (24h)—parabolic interest surge',
-                    'Breakout: Cleared $6.80 resistance',
-                    'Sentiment: 81% bullish—AI/GPU narrative',
-                    'Token velocity increasing'
-                ],
-                risk: 'Medium-High',
-                target: '$8.90',
-                stop: '$6.80',
-                action: 'Enter with caution. High volatility expected. Take profits at targets.'
-            },
-            {
-                coin: 'MATIC',
-                name: 'Polygon',
-                price: 0.87,
-                change: -1.2,
-                signal: 'hold',
-                conviction: 58,
-                updated: '8m ago',
-                details: [
-                    'RSI: 52 (Neutral—no directional bias)',
-                    'MACD: Flat, no clear crossover',
-                    'Volume: -8% vs average (weak participation)',
-                    'Active addresses declining -4% (7D)',
-                    'Awaiting POL migration catalyst'
-                ],
-                risk: 'Medium-Low',
-                target: '$0.94',
-                stop: '$0.82',
-                action: 'Hold existing positions. No new entry until conviction > 70.'
-            },
-            {
-                coin: 'AVAX',
-                name: 'Avalanche',
-                price: 41.23,
-                change: 6.8,
-                signal: 'buy',
-                conviction: 76,
-                updated: '12m ago',
-                details: [
-                    'RSI: 58 (Healthy uptrend, room to run)',
-                    'Volume: +22% vs 7D average',
-                    'EMA alignment: All timeframes bullish',
-                    'Subnet activity increasing +15%',
-                    'Gaming partnerships announcement pending'
-                ],
-                risk: 'Medium',
-                target: '$46.50',
-                stop: '$39.00',
-                action: 'Standard entry. 2–3% position sizing recommended.'
-            },
-            {
-                coin: 'LINK',
-                name: 'Chainlink',
-                price: 15.67,
-                change: 3.4,
-                signal: 'buy',
-                conviction: 67,
-                updated: '15m ago',
-                details: [
-                    'RSI: 55 (Neutral with upward bias)',
-                    'CCIP adoption growing +18% MoM',
-                    'Staking v0.2 launch imminent',
-                    'Oracle requests hitting all-time highs',
-                    'Strong relative strength vs BTC'
-                ],
-                risk: 'Low-Medium',
-                target: '$17.80',
-                stop: '$14.90',
-                action: 'Conservative entry for long-term holders. Low volatility expected.'
-            }
-        ];
-
-        const topMovers = [
-            { name: 'RNDR', change: 18.4 },
-            { name: 'INJ', change: 12.1 },
-            { name: 'DOGE', change: -8.2 }
-        ];
-
-        const watchlist = [
-            { name: 'BTC', price: 97234, trend: '↗️' },
-            { name: 'ETH', price: 3421, trend: '↗️' },
-            { name: 'SOL', price: 238.12, trend: '→' },
-            { name: 'AVAX', price: 41.23, trend: '↗️' }
-        ];
-
-        const catalysts = [
-            { event: 'Fed Minutes Release', time: '2h 14m' },
-            { event: 'ETH Futures Expiry', time: '8h' },
-            { event: 'SOL Token Unlock', time: '2d 4h' }
-        ];
-
-        // Render functions
-        function renderSignals(filter = 'all') {
-            const signalFeed = document.getElementById('signalFeed');
-            const filtered = filter === 'all' ? signals : signals.filter(s => s.signal === filter);
-            
-            signalFeed.innerHTML = filtered.map(signal => `
-                <div class="signal-card ${signal.signal}">
-                    <div class="card-header">
-                        <div class="coin-info">
-                            <span class="coin-symbol">${signal.coin}/USD</span>
-                            <span class="signal-badge ${signal.signal}">
-                                ${signal.signal.replace('-', ' ').toUpperCase()} 
-                                ${signal.signal === 'strong-buy' ? '🔥' : signal.signal === 'buy' ? '🟢' : '⚡'}
-                            </span>
-                            <span class="time-updated">${signal.updated}</span>
-                        </div>
-                        <div class="conviction-score">${signal.conviction}/100</div>
-                    </div>
-                    
-                    <div class="price-info">
-                        $${signal.price.toFixed(2)}
-                        <span class="price-change ${signal.change > 0 ? 'positive' : 'negative'}">
-                            ${signal.change > 0 ? '+' : ''}${signal.change}% 24h
-                        </span>
-                    </div>
-
-                    <div class="signal-details">
-                        ${signal.details.map(detail => `
-                            <div class="detail-item">
-                                <span class="detail-icon">▸</span>
-                                <span>${detail}</span>
-                            </div>
-                        `).join('')}
-                    </div>
-
-                    <div class="risk-section">
-                        <div class="risk-item">
-                            <span class="risk-label">Risk</span>
-                            <span class="risk-value">${signal.risk}</span>
-                        </div>
-                        <div class="risk-item">
-                            <span class="risk-label">Target</span>
-                            <span class="risk-value positive">${signal.target}</span>
-                        </div>
-                        <div class="risk-item">
-                            <span class="risk-label">Stop Loss</span>
-                            <span class="risk-value negative">${signal.stop}</span>
-                        </div>
-                    </div>
-
-                    <div class="ai-insight" style="margin-top: 16px; font-size: 13px;">
-                        <strong>ACTION:</strong> ${signal.action}
-                    </div>
-
-                    <div class="card-actions">
-                        <button class="btn btn-primary" onclick="viewFullAnalysis('${signal.coin}')">
-                            View Full Analysis →
-                        </button>
-                        <button class="btn btn-secondary" onclick="addToWatchlist('${signal.coin}')">
-                            Add to Watchlist
-                        </button>
+        <!-- Chart Section -->
+        <section class="chart-section">
+            <div class="chart-header">
+                <h2 class="section-title">Price Chart</h2>
+                <div class="chart-controls">
+                    <div class="time-selector">
+                        <button class="time-btn" data-period="1H">1H</button>
+                        <button class="time-btn active" data-period="24H">24H</button>
+                        <button class="time-btn" data-period="7D">7D</button>
+                        <button class="time-btn" data-period="1M">1M</button>
+                        <button class="time-btn" data-period="1Y">1Y</button>
                     </div>
                 </div>
-            `).join('');
-        }
+            </div>
+            <div class="chart-container">
+                <!-- TradingView Widget -->
+                <div id="tradingview_widget"></div>
+            </div>
+        </section>
+    </main>
 
-        function renderTopMovers() {
-            const container = document.getElementById('topMovers');
-            container.innerHTML = topMovers.map((mover, i) => `
-                <div class="top-mover">
-                    <span class="mover-name">${i + 1}. ${mover.name}</span>
-                    <span class="mover-change ${mover.change > 0 ? 'positive' : 'negative'}">
-                        ${mover.change > 0 ? '+' : ''}${mover.change}% ${mover.change > 0 ? '🟢' : '🔴'}
-                    </span>
-                </div>
-            `).join('');
-        }
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-text">KRYPTICKS © 2025</div>
+        </div>
+    </footer>
 
-        function renderWatchlist() {
-            const container = document.getElementById('watchlistItems');
-            container.innerHTML = watchlist.map(item => `
-                <div class="watchlist-item">
-                    <div>
-                        <div style="font-weight: 600; font-size: 14px;">${item.name}</div>
-                        <div style="font-size: 13px; color: #7B8AB8;">$${item.price.toLocaleString()}</div>
-                    </div>
-                    <div style="font-size: 18px;">${item.trend}</div>
-                </div>
-            `).join('');
-        }
-
-        function renderCatalysts() {
-            const container = document.getElementById('catalystsList');
-            container.innerHTML = catalysts.map(catalyst => `
-                <div class="catalyst-item">
-                    <span>• ${catalyst.event}</span>
-                    <span class="catalyst-time">${catalyst.time}</span>
-                </div>
-            `).join('');
-        }
-
-        function updateAIInsight() {
-            const insights = [
-                "Layer-1 altcoins showing divergence from BTC. High probability of rotation into SOL, AVAX ecosystems within 48h.",
-                "Funding rates normalizing across major pairs. Overleveraged longs have been flushed. Setup for relief rally.",
-                "AI/GPU token sector leading market. RNDR, FET, AGIX showing coordinated strength. Narrative-driven momentum building.",
-                "Mid-cap DeFi tokens consolidating. Awaiting BTC direction confirmation before next leg. Patience required.",
-                "Exchange netflows bullish for top 10 assets. Smart money accumulating during this consolidation phase."
-            ];
-            
-            const randomInsight = insights[Math.floor(Math.random() * insights.length)];
-            document.getElementById('aiInsight').textContent = randomInsight;
-        }
-
-        // Interactive functions
-        function filterSignals() {
-            const filter = document.getElementById('filterDropdown').value;
-            renderSignals(filter);
-        }
-
-        function viewFullAnalysis(coin) {
-            alert(`Opening detailed analysis for ${coin}...\n\nThis would open a modal with:\n• Complete technical breakdown\n• Historical performance\n• Risk metrics\n• Entry/exit strategies\n• Backtested signals`);
-        }
-
-        function addToWatchlist(coin) {
-            if (coin) {
-                alert(`${coin} added to your watchlist!\n\nYou'll receive real-time notifications when:\n• Signal conviction changes\n• Price hits key levels\n• Major news breaks`);
-            } else {
-                const newCoin = prompt('Enter coin symbol (e.g., BTC, ETH, SOL):');
-                if (newCoin) {
-                    alert(`${newCoin.toUpperCase()} added to watchlist!`);
-                    watchlist.push({ name: newCoin.toUpperCase(), price: 0, trend: '→' });
-                    renderWatchlist();
-                }
-            }
-        }
-
-        function loadMoreSignals() {
-            alert('Loading additional signals...\n\nIn production, this would:\n• Fetch next batch from API\n• Load 10 more coins\n• Update with real-time data');
-        }
-
-        // Simulated real-time updates
-        function simulateRealTimeUpdates() {
-            // Update metrics randomly
-            setInterval(() => {
-                const marketCap = (2.80 + Math.random() * 0.08).toFixed(2);
-                document.getElementById('totalMarketCap').textContent = `${marketCap}T`;
-                
-                const btcDom = (54 + Math.random() * 0.5).toFixed(1);
-                document.getElementById('btcDominance').textContent = `${btcDom}%`;
-                
-                const fearGreed = Math.floor(65 + Math.random() * 8);
-                document.getElementById('fearGreedIndex').textContent = fearGreed;
-            }, 5000);
-
-            // Update AI insight every 30 seconds
-            setInterval(updateAIInsight, 30000);
-
-            // Simulate price updates
-            setInterval(() => {
-                signals.forEach(signal => {
-                    const priceChange = (Math.random() - 0.5) * 0.5;
-                    signal.price += priceChange;
-                    signal.change += (Math.random() - 0.5) * 0.2;
-                });
-                renderSignals(document.getElementById('filterDropdown').value);
-            }, 10000);
-        }
-
-        // Search functionality
-        document.getElementById('searchBox').addEventListener('input', (e) => {
-            const query = e.target.value.toLowerCase();
-            if (query.length > 0) {
-                const matches = signals.filter(s => 
-                    s.coin.toLowerCase().includes(query) || 
-                    s.name.toLowerCase().includes(query)
-                );
-                if (matches.length > 0) {
-                    renderSignals('all');
-                    // In production, would filter displayed signals
-                }
-            }
-        });
-
-        // Initialize app
-        window.addEventListener('DOMContentLoaded', () => {
-            createStarfield();
-            renderSignals();
-            renderTopMovers();
-            renderWatchlist();
-            renderCatalysts();
-            updateAIInsight();
-            simulateRealTimeUpdates();
-
-            // Animate elements on load
-            setTimeout(() => {
-                document.querySelectorAll('.signal-card').forEach((card, i) => {
-                    setTimeout(() => {
-                        card.style.opacity = '0';
-                        card.style.transform = 'translateY(20px)';
-                        card.style.transition = 'all 0.5s ease-out';
-                        setTimeout(() => {
-                            card.style.opacity = '1';
-                            card.style.transform = 'translateY(0)';
-                        }, 50);
-                    }, i * 100);
-                });
-            }, 100);
-        });
-
-        // Keyboard shortcuts
-        document.addEventListener('keydown', (e) => {
-            // Press 'S' to focus search
-            if (e.key === 's' && !e.ctrlKey && !e.metaKey) {
-                e.preventDefault();
-                document.getElementById('searchBox').focus();
-            }
-            // Press 'R' to refresh signals
-            if (e.key === 'r' && !e.ctrlKey && !e.metaKey) {
-                e.preventDefault();
-                renderSignals(document.getElementById('filterDropdown').value);
-                alert('Signals refreshed! 🔄');
-            }
-        });
-
-        // Notification permission (for future use)
-        if ('Notification' in window && Notification.permission === 'default') {
-            setTimeout(() => {
-                if (confirm('Enable desktop notifications for high-conviction signals?')) {
-                    Notification.requestPermission();
-                }
-            }, 5000);
-        }
-
-        // Simulated notification trigger
-        function triggerSignalNotification(coin, signal) {
-            if ('Notification' in window && Notification.permission === 'granted') {
-                new Notification(`🔥 NEXUS ALPHA: ${coin}`, {
-                    body: `${signal.toUpperCase()} signal detected! Conviction: 92/100`,
-                    icon: '🚀',
-                    tag: coin
-                });
-            }
-        }
-
-        // Performance optimization: Lazy load images/charts
-        const observerOptions = {
-            root: null,
-            rootMargin: '50px',
-            threshold: 0.1
-        };
-
-        const chartObserver = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    // Load chart when visible
-                    const chart = entry.target;
-                    chart.innerHTML = '<div style="color: #00FFA3;">📊 Chart loaded</div>';
-                }
-            });
-        }, observerOptions);
-
-        setTimeout(() => {
-            const chartWidget = document.getElementById('chartWidget');
-            if (chartWidget) chartObserver.observe(chartWidget);
-        }, 1000);
-    </script>
+    <!-- TradingView Widget Script -->
+    <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+    <script src="app.js"></script>
 </body>
 </html>
