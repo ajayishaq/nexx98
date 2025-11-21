@@ -4,8 +4,6 @@
     "builder": "nixpacks"
   },
   "deploy": {
-    "startCommand": "uvicorn backend.main:app --host 0.0.0.0 --port $PORT",
-    "restartPolicyType": "always",
-    "restartPolicyMaxRetries": 5
+    "startCommand": "pip install -r requirements.txt && uvicorn backend.main:app --host 0.0.0.0 --port $PORT"
   }
 }
