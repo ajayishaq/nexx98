@@ -370,10 +370,13 @@ function updateAISignals() {
             ];
         }
 
-        return { coin, signal, reasons };
+        return { coin, signal, reasons, change };
     });
 
-    container.innerHTML = signals.map(({ coin, signal, reasons }) => `
+    container.innerHTML = signals.map(({ coin, signal, reasons, change }) => {
+        const rank = coin.market_cap_rank || 1;
+        const coinName = coin.name.replace(/'/g, "\\'");
+        return `
         <div class="signal-card-item">
             <div class="signal-header">
                 <div class="signal-coin">
@@ -385,9 +388,10 @@ function updateAISignals() {
             <div class="signal-reasons">
                 ${reasons.map(reason => `<div class="signal-reason">${reason}</div>`).join('')}
             </div>
-            <button class="btn-primary btn-sm" onclick="showAnalysisModal('${coin.id}', '${coin.name}', '${coin.symbol.toUpperCase()}', ${coin.current_price}, ${change}, ${coin.market_cap_rank})">View Analysis →</button>
+            <button class="btn-primary btn-sm" onclick="showAnalysisModal('${coin.id}', '${coinName}', '${coin.symbol.toUpperCase()}', ${coin.current_price}, ${change}, ${rank})">View Analysis →</button>
         </div>
-    `).join('');
+    `;
+    }).join('');
 }
 
 // Helper Functions
@@ -536,12 +540,10 @@ function closeAnalysisModal() {
 function filterMarkets(filter) {
     // Implement market filtering logic
     console.log('Filtering by:', filter);
-    // This would filter the displayed data based on the selection
 }
 
 function updateChartPeriod(period) {
     console.log('Updating chart period:', period);
-    // This would update the TradingView chart period
     initializeTradingViewWidget(period);
 }
 
