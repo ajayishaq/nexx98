@@ -229,19 +229,6 @@ body {
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-    position: relative;
-}
-
-.gradient-text::after {
-    content: '';
-    position: absolute;
-    bottom: -4px;
-    left: 0;
-    right: 0;
-    height: 3px;
-    background: var(--gradient-purple);
-    border-radius: 2px;
-    opacity: 0.5;
 }
 
 .hero-subtitle {
@@ -948,26 +935,6 @@ body {
     background: var(--border-color);
 }
 
-/* Ad Section */
-.ad-section {
-    background: var(--bg-secondary);
-    border-top: 1px solid var(--border-color);
-    border-bottom: 1px solid var(--border-color);
-    margin: 40px 0 0 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 200px;
-}
-
-#frame {
-    max-width: 900px;
-}
-
-#frame iframe {
-    transition: all 0.3s ease;
-}
-
 /* Footer */
 .footer {
     background: var(--bg-secondary);
@@ -1003,7 +970,13 @@ body {
 
 @media (max-width: 768px) {
     .header-content {
-        padding: 16px;
+        padding: 12px 16px;
+        gap: 12px;
+    }
+
+    .logo {
+        font-size: 16px;
+        white-space: nowrap;
     }
 
     .nav-links {
@@ -1012,42 +985,172 @@ body {
 
     .main-container {
         padding: 16px;
+        max-width: 100%;
+    }
+
+    body {
+        overflow-x: hidden;
     }
 
     .hero-title {
-        font-size: 32px;
+        font-size: 28px;
+        margin-bottom: 8px;
+    }
+
+    .hero-subtitle {
+        font-size: 14px;
     }
 
     .metrics-section {
         grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+        margin-bottom: 24px;
+    }
+
+    .metric-card {
+        padding: 16px;
+    }
+
+    .metric-value {
+        font-size: 20px;
     }
 
     .coin-grid {
-        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        gap: 12px;
+    }
+
+    .coin-card {
+        padding: 16px;
+    }
+
+    .coin-price {
+        font-size: 18px;
+    }
+
+    .coin-icon {
+        width: 32px;
+        height: 32px;
     }
 
     .two-column-layout {
         grid-template-columns: 1fr;
+        gap: 16px;
     }
 
     .sidebar {
         grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .ai-signal-panel {
+        padding: 16px;
+    }
+
+    .watchlist-widget {
+        padding: 16px;
+    }
+
+    .price-table {
+        font-size: 13px;
+    }
+
+    .price-table th,
+    .price-table td {
+        padding: 8px;
+    }
+
+    .footer {
+        padding: 16px;
+        margin-top: 32px;
+    }
+
+    .footer-text {
+        font-size: 12px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     .chart-container {
         height: 300px;
     }
 
+    .section-title {
+        font-size: 18px;
+    }
+
     .analysis-grid {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: 1fr;
+        gap: 12px;
     }
 
     .modal-content {
-        padding: 20px;
+        padding: 16px;
+        margin: 16px;
+    }
+}
+
+/* Ad Section Styling */
+.ad-section {
+    width: 100%;
+    padding: 40px 32px;
+    background: var(--bg-secondary);
+    border-top: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+    margin: 40px 0 0 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 200px;
+}
+
+#frame {
+    max-width: 900px;
+}
+
+#frame iframe {
+    transition: all 0.3s ease;
+}
+
+@media (max-width: 480px) {
+    .header-content {
+        padding: 12px 8px;
+        gap: 8px;
     }
 
+    .logo {
+        font-size: 14px;
+    }
+
+    .hero-title {
+        font-size: 22px;
+    }
+
+    .metrics-section {
+        grid-template-columns: 1fr;
+    }
+
+    .coin-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .theme-toggle {
+        padding: 6px 10px;
+    }
+
+    .price-table-section {
+        padding: 12px;
+    }
+
+    .main-container {
+        padding: 12px;
+    }
+}
+
+@media (max-width: 768px) {
     .ad-section {
-        padding: 16px;
+        padding: 20px 16px;
         min-height: 150px;
     }
 
