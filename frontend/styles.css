@@ -74,13 +74,15 @@ body {
 }
 
 .logo {
-    font-size: 24px;
-    font-weight: 700;
+    font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 20px;
+    font-weight: 600;
     background: var(--gradient-purple);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-    letter-spacing: -0.5px;
+    letter-spacing: 0.5px;
+    text-transform: lowercase;
 }
 
 .nav-links {
