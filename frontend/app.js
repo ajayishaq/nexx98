@@ -411,13 +411,67 @@ function selectCoin(coinId) {
     }
 }
 
+function calculateRSI(prices) {
+    if (!prices || prices.length < 2) return 50;
+    
+    let gains = 0, losses = 0;
+    for (let i = 1; i < Math.min(prices.length, 15); i++) {
+        const diff = prices[i] - prices[i - 1];
+        if (diff > 0) gains += diff;
+        else losses -= diff;
+    }
+    
+    const avgGain = gains / 14;
+    const avgLoss = losses / 14;
+    const rs = avgLoss === 0 ? 100 : avgGain / avgLoss;
+    return 100 - (100 / (1 + rs));
+}
+
 function showAnalysisModal(coinId, coinName, symbol, price, change, rank) {
     const modal = document.getElementById('analysisModal');
     if (!modal) return;
     
-    const rsi = Math.random() * 100;
-    const macd = change > 0 ? 'Bullish' : 'Bearish';
-    const volumeChange = Math.random() * 50 - 25;
+    const coin = marketsData.find(c => c.id === coinId);
+    if (!coin) return;
+    
+    // Calculate real metrics based on actual data
+    const sparklineData = coin.sparkline_in_7d?.price || [];
+    const rsi = calculateRSI(sparklineData);
+    
+    // Calculate momentum
+    const momentum = (sparklineData.length > 1) ? 
+        ((sparklineData[sparklineData.length - 1] - sparklineData[0]) / sparklineData[0] * 100) : change;
+    
+    // Determine momentum signal
+    const momentumSignal = momentum > 2 ? 'Strong' : momentum > 0 ? 'Moderate' : 'Weak';
+    const momentumDirection = momentum > 0 ? 'Bullish' : 'Bearish';
+    
+    // Calculate market strength
+    const marketCap = coin.market_cap || 0;
+    const volume = coin.total_volume || 0;
+    const volumeToMarketCap = volume > 0 && marketCap > 0 ? ((volume / marketCap) * 100) : 0;
+    
+    // Determine RSI condition
+    let rsiCondition = 'Neutral';
+    if (rsi > 70) rsiCondition = 'Overbought';
+    else if (rsi < 30) rsiCondition = 'Oversold';
+    else if (rsi > 50) rsiCondition = 'Strong';
+    else rsiCondition = 'Weak';
+    
+    // Calculate support/resistance based on 7d data
+    const high7d = sparklineData.length > 0 ? Math.max(...sparklineData) : price;
+    const low7d = sparklineData.length > 0 ? Math.min(...sparklineData) : price;
+    const resistance = ((high7d - price) / price * 100).toFixed(2);
+    const support = ((price - low7d) / price * 100).toFixed(2);
+    
+    // Detailed analysis text
+    let analysis = '';
+    if (change > 8) analysis = `Exceptional bullish strength! ${momentumSignal} ${momentumDirection} momentum with ${rsiCondition.toLowerCase()} RSI (${rsi.toFixed(1)}). Volume/MarketCap ratio of ${volumeToMarketCap.toFixed(1)}% indicates strong trading activity. Resistance at +${resistance}%, Support at -${support}%.`;
+    else if (change > 3) analysis = `Positive momentum detected. ${momentumDirection} RSI at ${rsi.toFixed(1)} (${rsiCondition}). Volume activity at ${volumeToMarketCap.toFixed(1)}% of market cap. Watch for breakout above resistance at ${resistance}%.`;
+    else if (change > 0) analysis = `Slight positive bias with ${rsiCondition.toLowerCase()} RSI (${rsi.toFixed(1)}). Consolidating near support at -${support}%. Moderate volume at ${volumeToMarketCap.toFixed(1)}% of cap.`;
+    else if (change > -3) analysis = `Mild downward pressure. RSI ${rsiCondition.toLowerCase()} at ${rsi.toFixed(1)}. Price holding above ${support}% support level. Monitor for stabilization.`;
+    else if (change > -8) analysis = `Bearish trend with ${rsiCondition.toLowerCase()} RSI (${rsi.toFixed(1)}). ${momentumDirection} momentum showing weakness. Support-seeking price action. Volume/cap ratio: ${volumeToMarketCap.toFixed(1)}%.`;
+    else analysis = `Strong bearish pressure! Severe downtrend with ${rsiCondition.toLowerCase()} RSI. ${momentumDirection} momentum confirmed. Trading volume significant at ${volumeToMarketCap.toFixed(1)}% of market cap. Critical support at -${support}%.`;
     
     modal.innerHTML = `
         <div class="modal-content">
@@ -438,15 +492,15 @@ function showAnalysisModal(coinId, coinName, symbol, price, change, rank) {
                 </div>
                 <div class="analysis-metric">
                     <div class="metric-name">RSI (14)</div>
-                    <div class="metric-value">${rsi.toFixed(1)}</div>
+                    <div class="metric-value ${rsi > 70 ? 'positive' : rsi < 30 ? 'negative' : ''}">${rsi.toFixed(1)}</div>
                 </div>
                 <div class="analysis-metric">
-                    <div class="metric-name">MACD Signal</div>
-                    <div class="metric-value ${macd === 'Bullish' ? 'positive' : 'negative'}">${macd}</div>
+                    <div class="metric-name">7d Momentum</div>
+                    <div class="metric-value ${momentum >= 0 ? 'positive' : 'negative'}">${momentum >= 0 ? '+' : ''}${momentum.toFixed(2)}%</div>
                 </div>
                 <div class="analysis-metric">
-                    <div class="metric-name">Volume Change</div>
-                    <div class="metric-value ${volumeChange >= 0 ? 'positive' : 'negative'}">${volumeChange >= 0 ? '+' : ''}${volumeChange.toFixed(1)}%</div>
+                    <div class="metric-name">Volume/Cap</div>
+                    <div class="metric-value">${volumeToMarketCap.toFixed(1)}%</div>
                 </div>
                 <div class="analysis-metric">
                     <div class="metric-name">Market Rank</div>
@@ -455,11 +509,14 @@ function showAnalysisModal(coinId, coinName, symbol, price, change, rank) {
             </div>
             
             <div class="analysis-section">
-                <h3>Technical Analysis</h3>
-                <p>${change > 5 ? 'Strong bullish momentum detected. RSI indicates overbought conditions with continued buying pressure.' : 
-                     change > 0 ? 'Positive price action with moderate volume support. Continue monitoring for breakout confirmation.' :
-                     change < -5 ? 'Significant bearish pressure. RSI in oversold territory suggesting potential rebound opportunity.' :
-                     'Consolidation phase with neutral indicators. Awaiting clearer directional signal.'}</p>
+                <h3>📊 Technical Analysis</h3>
+                <p><strong>Status:</strong> ${rsiCondition} | ${momentumDirection} Trend | 7d Range: $${formatNumber(low7d)} - $${formatNumber(high7d)}</p>
+                <p style="margin-top: 8px;">${analysis}</p>
+            </div>
+            
+            <div class="analysis-section">
+                <h3>💡 Key Levels</h3>
+                <p>Resistance: $${formatNumber(high7d)} (+${resistance}%) | Support: $${formatNumber(low7d)} (-${support}%)</p>
             </div>
             
             <div class="analysis-actions">
@@ -525,45 +582,41 @@ function generateSparklineSVG(prices) {
 }
 
 // TradingView Widget
-function initializeTradingViewWidget(interval = 'D') {
+function initializeTradingViewWidget(period = '24H') {
     const container = document.getElementById('tradingview_widget');
-    if (!container || typeof TradingView === 'undefined') {
-        console.warn('TradingView widget not available');
-        container.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: var(--text-muted);">Chart loading...</div>';
-        return;
-    }
+    if (!container) return;
 
-    const theme = document.documentElement.getAttribute('data-theme');
-    
     container.innerHTML = '';
     
-    try {
-        new TradingView.widget({
-            width: '100%',
-            height: '100%',
-            symbol: `BINANCE:${selectedCoin}`,
-            interval: interval,
-            timezone: 'Etc/UTC',
-            theme: theme === 'dark' ? 'dark' : 'light',
-            style: '1',
-            locale: 'en',
-            toolbar_bg: theme === 'dark' ? '#1A1A24' : '#FFFFFF',
-            enable_publishing: false,
-            hide_side_toolbar: false,
-            allow_symbol_change: true,
-            container_id: 'tradingview_widget',
-            studies: [
-                'MASimple@tv-basicstudies',
-                'RSI@tv-basicstudies'
-            ],
-            show_popup_button: true,
-            popup_width: '1000',
-            popup_height: '650'
-        });
-    } catch (error) {
-        console.error('Error initializing TradingView widget:', error);
-        container.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: var(--text-muted);">Chart unavailable</div>';
-    }
+    const script = document.createElement('script');
+    script.type = 'text/javascript';
+    script.src = 'https://s3.tradingview.com/tv.js';
+    script.async = true;
+    script.onload = () => {
+        new window.TradingView.widget(
+            {
+                autosize: true,
+                symbol: selectedCoin || 'BTCUSD',
+                interval: period.replace('H', '').toLowerCase() || 'D',
+                timezone: 'Etc/UTC',
+                theme: document.documentElement.getAttribute('data-theme') || 'dark',
+                style: '1',
+                locale: 'en',
+                toolbar_bg: document.documentElement.getAttribute('data-theme') === 'light' ? '#f7f7fa' : '#1a1a24',
+                enable_publishing: false,
+                withdateranges: true,
+                hide_side_toolbar: false,
+                allow_symbol_change: true,
+                details: true,
+                hotlist: false,
+                calendar: false,
+                studies: ['RSI@tv-basicstudies', 'MACD@tv-basicstudies', 'Volume@tv-basicstudies'],
+                container_id: 'tradingview_widget'
+            }
+        );
+    };
+    
+    container.appendChild(script);
 }
 
 // Utility Functions
@@ -571,12 +624,12 @@ function formatNumber(num) {
     if (num >= 1) {
         return num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     } else {
-        return num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 6 });
+        return num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 8 });
     }
 }
 
-function formatCurrency(num, format = 'full') {
-    if (format === 'compact') {
+function formatCurrency(num, style = 'standard') {
+    if (style === 'compact') {
         if (num >= 1e12) return `$${(num / 1e12).toFixed(2)}T`;
         if (num >= 1e9) return `$${(num / 1e9).toFixed(2)}B`;
         if (num >= 1e6) return `$${(num / 1e6).toFixed(2)}M`;
@@ -603,16 +656,22 @@ function switchPage(page) {
     });
     
     if (page === 'dashboard') {
-        // Show dashboard sections
         document.querySelector('.hero-section').style.display = 'block';
         document.querySelector('.metrics-section').style.display = 'grid';
         document.querySelector('.market-overview').style.display = 'block';
         document.querySelector('.two-column-layout').style.display = 'grid';
         document.querySelector('.chart-section').style.display = 'block';
     } else if (page === 'markets') {
-        document.querySelector('.market-overview').style.display = 'block';
         document.querySelector('.two-column-layout').style.display = 'grid';
+        document.querySelector('.chart-section').style.display = 'block';
     } else if (page === 'signals') {
         document.querySelector('.two-column-layout').style.display = 'grid';
+        document.querySelector('.chart-section').style.display = 'block';
     }
 }
+
+// Auto-refresh data every 60 seconds
+setInterval(() => {
+    fetchGlobalMetrics();
+    fetchFearGreed();
+}, 60000);
