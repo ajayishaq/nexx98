@@ -17,6 +17,8 @@ document.addEventListener('DOMContentLoaded', () => {
     loadAllData();
     initializeWebSocket();
     initializeTradingViewWidget();
+    initializeVIPPayment();
+    checkVIPLogin();
 });
 
 // Theme Management
@@ -55,9 +57,10 @@ function attachEventListeners() {
     document.querySelectorAll('.nav-link').forEach(link => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
+            const page = link.getAttribute('data-page');
+            console.log('✓ Navigation clicked:', page);
             document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
             link.classList.add('active');
-            const page = link.getAttribute('data-page');
             switchPage(page);
         });
     });
@@ -402,19 +405,34 @@ function initializeWebSocket() {
     connect();
 }
 
-// TradingView Widget
+// TradingView Widget - Using CoinGecko Chart Images
 function initializeTradingViewWidget(period = '24H') {
     const container = document.getElementById('tradingview_widget');
-    if (!container) return;
+    if (!container) {
+        console.log('⚠ TradingView widget container not found');
+        return;
+    }
     
-    const periodMap = { '1H': '60', '24H': '240', '7D': 'D', '1M': 'W', '1Y': 'M' };
-    const tvPeriod = periodMap[period] || '240';
-    const theme = document.documentElement.getAttribute('data-theme') || 'dark';
+    // Extract coin ID from selected coin symbol
+    const coin = marketsData.find(c => `${c.symbol.toUpperCase()}USD` === selectedCoin);
+    if (!coin) {
+        container.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: var(--text-muted);">Select a coin to view chart</div>';
+        return;
+    }
     
+    const coinId = coin.id;
+    const daysMap = { '1H': '1', '24H': '1', '7D': '7', '1M': '30', '1Y': '365' };
+    const days = daysMap[period] || '1';
+    
+    console.log('✓ Loading chart for:', coinId, 'Period:', period);
+    
+    // Use CoinGecko's chart image URL (public API)
     container.innerHTML = `
-        <iframe src="https://s.tradingview.com/chart/${selectedCoin}/?symbol=${selectedCoin}&interval=${tvPeriod}&theme=${theme}" 
-            style="width: 100%; height: 100%; border: none; border-radius: 12px;" 
-            allow="clipboard-write" allowFullScreen></iframe>
+        <img 
+            src="https://www.coingecko.com/coins/${coinId}/sparkline.svg?days=${days}" 
+            alt="${coinId} chart"
+            style="width: 100%; height: 100%; object-fit: contain; display: block; border-radius: 12px;"
+            onerror="this.style.display='none'; this.parentElement.innerHTML='<div style=\\'display: flex; align-items: center; justify-content: center; height: 100%; color: var(--text-muted)\\'>Chart loading...</div>'">
     `;
 }
 
@@ -428,23 +446,76 @@ function filterMarkets(filter) {
 
 // Page Navigation
 function switchPage(page) {
+    console.log('Switching to page:', page);
+    
+    // Hide all main sections
+    const dashboard = document.getElementById('dashboardSection');
+    const markets = document.getElementById('marketsSection');
+    const signals = document.getElementById('signalsSection');
     const vipSection = document.getElementById('vipSection');
     const vipDash = document.getElementById('vipDashboardSection');
-    const vipLogin = document.getElementById('vipLoginSection');
     
-    if (page === 'vip') {
-        if (isAdminAccessActive()) {
+    if (dashboard) dashboard.style.display = 'none';
+    if (markets) markets.style.display = 'none';
+    if (signals) signals.style.display = 'none';
+    if (vipSection) vipSection.style.display = 'none';
+    if (vipDash) vipDash.style.display = 'none';
+    
+    // Show selected page
+    if (page === 'dashboard') {
+        if (dashboard) dashboard.style.display = 'block';
+    } else if (page === 'markets') {
+        if (markets) markets.style.display = 'block';
+    } else if (page === 'signals') {
+        if (signals) signals.style.display = 'block';
+        renderSignalsPage();
+    } else if (page === 'vip') {
+        // Check if user is admin or already logged in
+        const isAdmin = isAdminAccessActive();
+        const isLoggedIn = localStorage.getItem('vipLoggedIn') === 'true';
+        
+        if (isAdmin || isLoggedIn) {
+            // Show dashboard
             if (vipDash) vipDash.style.display = 'block';
-            if (vipSection) vipSection.style.display = 'none';
             loadVIPDashboard();
         } else {
+            // Show subscription page
             if (vipSection) vipSection.style.display = 'block';
-            if (vipDash) vipDash.style.display = 'none';
         }
-    } else {
-        if (vipSection) vipSection.style.display = 'none';
-        if (vipDash) vipDash.style.display = 'none';
     }
+}
+
+function renderSignalsPage() {
+    const container = document.getElementById('signalCardsPage');
+    if (!container || !marketsData.length) return;
+    
+    container.innerHTML = marketsData.slice(0, 9).map(coin => {
+        const change = coin.price_change_percentage_24h;
+        let signal, color;
+        
+        if (change > 5) { signal = 'STRONG BUY'; color = 'strong-buy'; }
+        else if (change > 2) { signal = 'BUY'; color = 'buy'; }
+        else if (change < -5) { signal = 'SELL'; color = 'sell'; }
+        else { signal = 'HOLD'; color = 'hold'; }
+        
+        return `
+            <div class="signal-card-item">
+                <div class="signal-header">
+                    <div class="signal-coin">
+                        <img src="${coin.image}" alt="${coin.symbol}" class="coin-icon-sm">
+                        <span>${coin.symbol.toUpperCase()}/USD</span>
+                    </div>
+                    <span class="signal-badge ${color}">${signal}</span>
+                </div>
+                <div class="signal-reasons">
+                    <div class="signal-reason">• Price Change: ${change > 0 ? '+' : ''}${change.toFixed(2)}%</div>
+                    <div class="signal-reason">• Volume: ${formatCurrency(coin.total_volume || 0, 'compact')}</div>
+                    <div class="signal-reason">• Market Cap: ${formatCurrency(coin.market_cap || 0, 'compact')}</div>
+                </div>
+                <button class="btn-primary btn-sm" onclick="selectCoin('${coin.id}')">View Chart →</button>
+            </div>
+        `;
+    }).join('');
 }
 
 function loadVIPDashboard() {
@@ -552,6 +623,167 @@ function closeCryptoModal() {
     if (opts) opts.style.display = 'grid';
     const disp = document.getElementById('addressDisplay');
     if (disp) disp.style.display = 'none';
+}
+
+// VIP Payment System
+function openCryptoModal(plan, price) {
+    const modal = document.getElementById('cryptoPaymentModal');
+    if (modal) {
+        modal.style.display = 'flex';
+        const amountEl = document.getElementById('paymentAmount');
+        if (amountEl) amountEl.textContent = `$${price}`;
+        
+        // Store current plan info
+        modal.dataset.plan = plan;
+        modal.dataset.price = price;
+    }
+}
+
+// VIP Login & Dashboard
+function handleVIPLogin(event) {
+    event.preventDefault();
+    const emailInput = document.getElementById('vipEmail');
+    if (!emailInput) return;
+    
+    const email = emailInput.value.trim();
+    if (!email) {
+        alert('Please enter your email');
+        return;
+    }
+    
+    console.log('✓ VIP Login attempt:', email);
+    
+    // Store email and switch to dashboard
+    localStorage.setItem('vipEmail', email);
+    localStorage.setItem('vipLoggedIn', 'true');
+    
+    // Switch to VIP dashboard
+    const loginSection = document.getElementById('vipLoginSection');
+    const dashSection = document.getElementById('vipDashboardSection');
+    if (loginSection) loginSection.style.display = 'none';
+    if (dashSection) dashSection.style.display = 'block';
+    
+    // Update user email display
+    const userEmailEl = document.getElementById('userEmail');
+    if (userEmailEl) userEmailEl.textContent = `Logged in as: ${email}`;
+    
+    // Load VIP signals
+    loadVIPDashboard();
+}
+
+function logoutVIP() {
+    console.log('✓ VIP Logout');
+    localStorage.removeItem('vipEmail');
+    localStorage.removeItem('vipLoggedIn');
+    
+    const loginSection = document.getElementById('vipLoginSection');
+    const dashSection = document.getElementById('vipDashboardSection');
+    if (loginSection) loginSection.style.display = 'block';
+    if (dashSection) dashSection.style.display = 'none';
+    
+    // Clear form
+    const emailInput = document.getElementById('vipEmail');
+    if (emailInput) emailInput.value = '';
+}
+
+function loadVIPDashboard() {
+    const container = document.getElementById('premiumSignalsContainer');
+    if (!container) return;
+    
+    container.innerHTML = '<div style="padding: 40px; text-align: center; color: var(--text-muted);">Loading premium signals...</div>';
+    
+    // Fetch VIP signals from API
+    fetch(`${API_BASE}/api/vip/signals`)
+        .then(res => res.json())
+        .then(data => {
+            if (!data.success || !data.signals) {
+                container.innerHTML = '<div style="padding: 20px; color: red;">Failed to load signals</div>';
+                return;
+            }
+            
+            console.log('✓ Loaded', data.signals.length, 'VIP signals');
+            
+            // Render premium signals
+            container.innerHTML = data.signals.slice(0, 8).map(signal => `
+                <div class="vip-signal-card">
+                    <div class="vip-signal-header">
+                        <div class="vip-signal-coin">
+                            <strong>${signal.symbol}</strong>
+                            <span class="signal-pair">${signal.pair}</span>
+                        </div>
+                        <span class="vip-signal-badge" style="background: ${
+                            signal.signal === 'STRONG BUY' ? '#10b981' : 
+                            signal.signal === 'BUY' ? '#3b82f6' :
+                            signal.signal === 'SELL' ? '#ef4444' :
+                            signal.signal === 'STRONG SELL' ? '#991b1b' :
+                            '#f59e0b'
+                        };">${signal.signal}</span>
+                    </div>
+                    
+                    <div class="vip-signal-price">
+                        <div>Price: <strong>$${signal.current_price.toFixed(2)}</strong></div>
+                        <div>24h Change: <span style="color: ${signal.price_24h_change >= 0 ? '#10b981' : '#ef4444'}">${signal.price_24h_change > 0 ? '+' : ''}${signal.price_24h_change.toFixed(2)}%</span></div>
+                    </div>
+                    
+                    <div class="vip-signal-analysis">
+                        <div>RSI: ${signal.rsi.toFixed(1)}</div>
+                        <div>Volume Trend: ${signal.volume_trend}</div>
+                        <div>Confidence: ${signal.confidence}%</div>
+                    </div>
+                    
+                    <div class="vip-signal-levels">
+                        <div>🎯 Target: $${signal.target_price.toFixed(2)}</div>
+                        <div>🛑 Stop Loss: $${signal.stop_loss.toFixed(2)}</div>
+                        <div>📊 Risk/Reward: ${signal.risk_reward_ratio.toFixed(2)}</div>
+                    </div>
+                    
+                    <div class="vip-signal-analysis-text">${signal.analysis}</div>
+                    <div style="margin-top: 10px; font-size: 12px; color: var(--text-muted);">
+                        Win Rate: ${signal.win_rate}% | Accuracy: ${signal.accuracy_score}%
+                    </div>
+                </div>
+            `).join('');
+        })
+        .catch(err => {
+            console.error('Error loading VIP signals:', err);
+            container.innerHTML = '<div style="padding: 20px; color: red;">Error loading signals</div>';
+        });
+}
+
+function handleCryptoPayment(event) {
+    const btn = event.target.closest('.crypto-pay-btn');
+    if (!btn) return;
+    
+    const plan = btn.getAttribute('data-plan');
+    const price = btn.getAttribute('data-price');
+    
+    console.log('✓ Opening crypto payment for:', plan, `($${price})`);
+    openCryptoModal(plan, price);
+}
+
+// Initialize VIP payment buttons
+function initializeVIPPayment() {
+    document.querySelectorAll('.crypto-pay-btn').forEach(btn => {
+        btn.addEventListener('click', handleCryptoPayment);
+    });
+}
+
+// Check if VIP user is already logged in
+function checkVIPLogin() {
+    const isLoggedIn = localStorage.getItem('vipLoggedIn') === 'true';
+    const email = localStorage.getItem('vipEmail');
+    
+    if (isLoggedIn && email) {
+        const loginSection = document.getElementById('vipLoginSection');
+        const dashSection = document.getElementById('vipDashboardSection');
+        if (loginSection) loginSection.style.display = 'none';
+        if (dashSection) dashSection.style.display = 'block';
+        
+        const userEmailEl = document.getElementById('userEmail');
+        if (userEmailEl) userEmailEl.textContent = `Logged in as: ${email}`;
+        
+        loadVIPDashboard();
+    }
 }
 
 // Auto-refresh
