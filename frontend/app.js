@@ -1,18 +1,14 @@
 // Krypticks - Main Application JavaScript
-
-// Configuration
 const API_BASE = window.location.origin;
 const WS_PROTOCOL = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
 const WS_URL = `${WS_PROTOCOL}//${window.location.host}/ws/prices`;
 
-// State management
 let marketsData = [];
 let globalData = {};
 let fearGreedData = {};
 let watchlist = JSON.parse(localStorage.getItem('watchlist') || '["bitcoin", "ethereum", "solana"]');
 let selectedCoin = 'BTCUSD';
 
-// Initialize application
 document.addEventListener('DOMContentLoaded', () => {
     initializeTheme();
     initializeEventListeners();
@@ -21,7 +17,6 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeTradingViewWidget();
 });
 
-// Theme Management
 function initializeTheme() {
     const savedTheme = localStorage.getItem('theme') || 'dark';
     document.documentElement.setAttribute('data-theme', savedTheme);
@@ -32,26 +27,20 @@ document.getElementById('themeToggle')?.addEventListener('click', () => {
     const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
     document.documentElement.setAttribute('data-theme', newTheme);
     localStorage.setItem('theme', newTheme);
-    
-    // Reinitialize TradingView widget with new theme
     initializeTradingViewWidget();
 });
 
-// Event Listeners
 function initializeEventListeners() {
-    // Navigation links
     document.querySelectorAll('.nav-link').forEach(link => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
             document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
             e.target.classList.add('active');
-            
             const page = e.target.getAttribute('data-page');
             switchPage(page);
         });
     });
 
-    // Time selector for chart
     document.querySelectorAll('.time-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             document.querySelectorAll('.time-btn').forEach(b => b.classList.remove('active'));
@@ -61,12 +50,10 @@ function initializeEventListeners() {
         });
     });
 
-    // Market filter
     document.getElementById('marketFilter')?.addEventListener('change', (e) => {
         filterMarkets(e.target.value);
     });
 
-    // Add to watchlist
     document.getElementById('addWatchlistBtn')?.addEventListener('click', () => {
         const coin = prompt('Enter coin ID (e.g., bitcoin, ethereum):');
         if (coin && !watchlist.includes(coin.toLowerCase())) {
@@ -77,15 +64,9 @@ function initializeEventListeners() {
     });
 }
 
-// Fetch initial data
 async function fetchInitialData() {
     try {
-        await Promise.all([
-            fetchMarkets(),
-            fetchGlobalMetrics(),
-            fetchFearGreed()
-        ]);
-        
+        await Promise.all([fetchMarkets(), fetchGlobalMetrics(), fetchFearGreed()]);
         updateUI();
     } catch (error) {
         console.error('Error fetching initial data:', error);
@@ -93,7 +74,6 @@ async function fetchInitialData() {
     }
 }
 
-// API Calls
 async function fetchMarkets() {
     try {
         const response = await fetch(`${API_BASE}/api/markets`);
@@ -130,7 +110,6 @@ async function fetchFearGreed() {
     }
 }
 
-// WebSocket for real-time updates
 function initializeWebSocket() {
     let ws;
     let reconnectInterval = 5000;
@@ -174,7 +153,6 @@ function initializeWebSocket() {
     connect();
 }
 
-// UI Update Functions
 function updateUI() {
     updateGlobalMetrics();
     updateCoinGrid();
@@ -238,7 +216,6 @@ function updateCoinGrid() {
         </div>
     `).join('');
 
-    // Add click listeners
     grid.querySelectorAll('.coin-card').forEach(card => {
         card.addEventListener('click', () => {
             const coinId = card.getAttribute('data-coin-id');
@@ -279,7 +256,6 @@ function updatePriceTable() {
         `;
     }).join('');
 
-    // Add star button listeners
     tbody.querySelectorAll('.star-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -287,7 +263,6 @@ function updatePriceTable() {
         });
     });
 
-    // Add row click listeners
     tbody.querySelectorAll('tr').forEach(row => {
         row.addEventListener('click', () => {
             const coinId = row.getAttribute('data-coin-id');
@@ -322,7 +297,6 @@ function updateWatchlist() {
         </div>
     `).join('');
 
-    // Add click listeners
     container.querySelectorAll('.watchlist-item').forEach(item => {
         item.addEventListener('click', () => {
             const coinId = item.getAttribute('data-coin-id');
@@ -335,7 +309,6 @@ function updateAISignals() {
     const container = document.getElementById('signalCards');
     if (!container || !marketsData.length) return;
 
-    // Generate AI signals based on market data (simplified logic)
     const signals = marketsData.slice(0, 3).map(coin => {
         const change = coin.price_change_percentage_24h;
         let signal, reasons;
@@ -394,7 +367,6 @@ function updateAISignals() {
     }).join('');
 }
 
-// Helper Functions
 function toggleWatchlist(coinId) {
     const index = watchlist.indexOf(coinId);
     if (index > -1) {
@@ -438,37 +410,30 @@ function showAnalysisModal(coinId, coinName, symbol, price, change, rank) {
     const coin = marketsData.find(c => c.id === coinId);
     if (!coin) return;
     
-    // Calculate real metrics based on actual data
     const sparklineData = coin.sparkline_in_7d?.price || [];
     const rsi = calculateRSI(sparklineData);
     
-    // Calculate momentum
     const momentum = (sparklineData.length > 1) ? 
         ((sparklineData[sparklineData.length - 1] - sparklineData[0]) / sparklineData[0] * 100) : change;
     
-    // Determine momentum signal
     const momentumSignal = momentum > 2 ? 'Strong' : momentum > 0 ? 'Moderate' : 'Weak';
     const momentumDirection = momentum > 0 ? 'Bullish' : 'Bearish';
     
-    // Calculate market strength
     const marketCap = coin.market_cap || 0;
     const volume = coin.total_volume || 0;
     const volumeToMarketCap = volume > 0 && marketCap > 0 ? ((volume / marketCap) * 100) : 0;
     
-    // Determine RSI condition
     let rsiCondition = 'Neutral';
     if (rsi > 70) rsiCondition = 'Overbought';
     else if (rsi < 30) rsiCondition = 'Oversold';
     else if (rsi > 50) rsiCondition = 'Strong';
     else rsiCondition = 'Weak';
     
-    // Calculate support/resistance based on 7d data
     const high7d = sparklineData.length > 0 ? Math.max(...sparklineData) : price;
     const low7d = sparklineData.length > 0 ? Math.min(...sparklineData) : price;
     const resistance = ((high7d - price) / price * 100).toFixed(2);
     const support = ((price - low7d) / price * 100).toFixed(2);
     
-    // Detailed analysis text
     let analysis = '';
     if (change > 8) analysis = `Exceptional bullish strength! ${momentumSignal} ${momentumDirection} momentum with ${rsiCondition.toLowerCase()} RSI (${rsi.toFixed(1)}). Volume/MarketCap ratio of ${volumeToMarketCap.toFixed(1)}% indicates strong trading activity. Resistance at +${resistance}%, Support at -${support}%.`;
     else if (change > 3) analysis = `Positive momentum detected. ${momentumDirection} RSI at ${rsi.toFixed(1)} (${rsiCondition}). Volume activity at ${volumeToMarketCap.toFixed(1)}% of market cap. Watch for breakout above resistance at ${resistance}%.`;
@@ -538,7 +503,6 @@ function closeAnalysisModal() {
 }
 
 function filterMarkets(filter) {
-    // Implement market filtering logic
     console.log('Filtering by:', filter);
 }
 
@@ -583,55 +547,40 @@ function generateSparklineSVG(prices) {
     `;
 }
 
-// TradingView Widget
 function initializeTradingViewWidget(period = '24H') {
     const container = document.getElementById('tradingview_widget');
     if (!container) return;
 
     container.innerHTML = '';
-    
+
     const script = document.createElement('script');
     script.type = 'text/javascript';
-    script.src = 'https://s3.tradingview.com/tv.js';
-    script.async = true;
-    script.onload = () => {
-        new window.TradingView.widget(
-            {
-                autosize: true,
-                symbol: selectedCoin || 'BTCUSD',
-                interval: period.replace('H', '').toLowerCase() || 'D',
-                timezone: 'Etc/UTC',
-                theme: document.documentElement.getAttribute('data-theme') || 'dark',
-                style: '1',
-                locale: 'en',
-                toolbar_bg: document.documentElement.getAttribute('data-theme') === 'light' ? '#f7f7fa' : '#1a1a24',
-                enable_publishing: false,
-                withdateranges: true,
-                hide_side_toolbar: false,
-                allow_symbol_change: true,
-                details: true,
-                hotlist: false,
-                calendar: false,
-                studies: ['RSI@tv-basicstudies', 'MACD@tv-basicstudies', 'Volume@tv-basicstudies'],
-                container_id: 'tradingview_widget'
-            }
-        );
-    };
-    
+    script.src = 'https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js';
+    script.innerHTML = JSON.stringify({
+        autosize: true,
+        symbol: selectedCoin,
+        interval: period === '1H' ? '60' : period === '24H' ? '240' : period === '7D' ? 'D' : period === '1M' ? 'W' : 'M',
+        timezone: 'Etc/UTC',
+        theme: document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light',
+        style: '1',
+        locale: 'en',
+        allow_symbol_change: true,
+        support_host: 'https://www.tradingview.com'
+    });
+
     container.appendChild(script);
 }
 
-// Utility Functions
 function formatNumber(num) {
     if (num >= 1) {
         return num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     } else {
-        return num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 8 });
+        return num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 6 });
     }
 }
 
-function formatCurrency(num, style = 'standard') {
-    if (style === 'compact') {
+function formatCurrency(num, format = 'full') {
+    if (format === 'compact') {
         if (num >= 1e12) return `$${(num / 1e12).toFixed(2)}T`;
         if (num >= 1e9) return `$${(num / 1e9).toFixed(2)}B`;
         if (num >= 1e6) return `$${(num / 1e6).toFixed(2)}M`;
@@ -648,12 +597,10 @@ function showNotification(message, type = 'info') {
     console.log(`[${type.toUpperCase()}] ${message}`);
 }
 
-// Page Navigation
 function switchPage(page) {
     console.log('Switching to page:', page);
     
-    // Hide all sections
-    document.querySelectorAll('.hero-section, .metrics-section, .market-overview, .two-column-layout, .chart-section').forEach(section => {
+    document.querySelectorAll('.hero-section, .metrics-section, .market-overview, .two-column-layout, .chart-section, .vip-section, .vip-login-section, .vip-dashboard-section').forEach(section => {
         section.style.display = 'none';
     });
     
@@ -669,10 +616,162 @@ function switchPage(page) {
     } else if (page === 'signals') {
         document.querySelector('.two-column-layout').style.display = 'grid';
         document.querySelector('.chart-section').style.display = 'block';
+    } else if (page === 'vip') {
+        const userEmail = localStorage.getItem('vipUserEmail');
+        console.log('VIP page clicked. User email:', userEmail);
+        if (userEmail) {
+            console.log('Showing VIP dashboard for:', userEmail);
+            const dashboardSection = document.querySelector('.vip-dashboard-section');
+            if (dashboardSection) {
+                dashboardSection.style.display = 'block';
+                showVIPDashboard(userEmail);
+            }
+        } else {
+            console.log('Showing VIP subscription page');
+            const vipSection = document.querySelector('.vip-section');
+            if (vipSection) {
+                vipSection.style.display = 'block';
+                initVIPPage();
+                localStorage.setItem('vipPageVisited', 'true');
+                console.log('VIP section should be visible now');
+            } else {
+                console.error('VIP section not found in DOM');
+            }
+        }
     }
 }
 
-// Auto-refresh data every 60 seconds
+function initVIPPage() {
+    document.querySelectorAll('.crypto-pay-btn').forEach(btn => {
+        btn.removeEventListener('click', handleCryptoPayment);
+        btn.addEventListener('click', handleCryptoPayment);
+    });
+}
+
+function handleCryptoPayment(e) {
+    const plan = e.target.getAttribute('data-plan');
+    const price = e.target.getAttribute('data-price');
+    
+    document.getElementById('paymentAmount').textContent = `$${price}`;
+    document.getElementById('cryptoPaymentModal').classList.add('active');
+    document.getElementById('cryptoPaymentModal').style.display = 'flex';
+    
+    window.currentPaymentPlan = { plan, price };
+}
+
+function showCryptoAddress(currency) {
+    const addresses = {
+        bitcoin: '1Mk3rVFG9goEHU44ykeBJwJb19kCUTfSBT',
+        ethereum: '0x218ca75414eb618620c01d7435bea327ea0cc9e3',
+        usdt: 'TCbJ2jifeo5yobQKSvu5By7ji82m7czgj3',
+        bnb: '0x218ca75414eb618620c01d7435bea327ea0cc9e3'
+    };
+    
+    document.getElementById('addressDisplay').style.display = 'block';
+    document.getElementById('paymentAddress').value = addresses[currency] || '';
+    
+    generateQRCode(addresses[currency], currency);
+}
+
+function generateQRCode(address, currency) {
+    const container = document.getElementById('qrCode');
+    if (!container) return;
+    
+    container.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(address)}" alt="QR Code" style="width: 150px; height: 150px; border-radius: 8px;">`;
+}
+
+function copyAddress() {
+    const addressInput = document.getElementById('paymentAddress');
+    addressInput.select();
+    document.execCommand('copy');
+    showNotification('Address copied to clipboard!', 'success');
+}
+
+function closeCryptoModal() {
+    document.getElementById('cryptoPaymentModal').classList.remove('active');
+    document.getElementById('cryptoPaymentModal').style.display = 'none';
+    document.getElementById('addressDisplay').style.display = 'none';
+}
+
+function handleVIPLogin(event) {
+    event.preventDefault();
+    const email = document.getElementById('vipEmail').value;
+    if (email) {
+        localStorage.setItem('vipUserEmail', email);
+        switchPage('vip');
+    }
+}
+
+function showVIPDashboard(email) {
+    document.querySelector('.vip-dashboard-section').style.display = 'block';
+    document.getElementById('userEmail').textContent = `Welcome back, ${email}`;
+    loadPremiumSignals();
+}
+
+function loadPremiumSignals() {
+    fetch(`${API_BASE}/api/vip/signals`)
+        .then(r => r.json())
+        .then(data => {
+            if (data.success && data.signals) {
+                displayPremiumSignals(data.signals);
+            }
+        })
+        .catch(e => console.error('Error loading premium signals:', e));
+}
+
+function displayPremiumSignals(signals) {
+    const container = document.getElementById('premiumSignalsContainer');
+    if (!container) return;
+    
+    signals.forEach(signal => {
+        const signalEl = document.createElement('div');
+        signalEl.className = 'premium-signal-item';
+        signalEl.innerHTML = `
+            <div class="signal-header-premium">
+                <div>
+                    <h3>${signal.pair}</h3>
+                    <p class="current-price">$${signal.current_price.toLocaleString('en-US', {maximumFractionDigits: 2})}</p>
+                </div>
+                <span class="signal-badge ${signal.signal.toLowerCase().replace(' ', '-')}">${signal.signal}</span>
+            </div>
+            
+            <div class="signal-analytics">
+                <div class="analytics-row">
+                    <span>RSI:</span>
+                    <strong>${signal.rsi}</strong>
+                </div>
+                <div class="analytics-row">
+                    <span>Confidence:</span>
+                    <strong>${signal.confidence}%</strong>
+                </div>
+                <div class="analytics-row">
+                    <span>Volume Trend:</span>
+                    <strong>${signal.volume_trend.toFixed(1)}%</strong>
+                </div>
+            </div>
+            
+            <div class="signal-levels">
+                <div class="level-item">
+                    <label>Support</label>
+                    <div class="level-value">$${signal.support.toLocaleString('en-US', {maximumFractionDigits: 2})}</div>
+                </div>
+                <div class="level-item">
+                    <label>Resistance</label>
+                    <div class="level-value">$${signal.resistance.toLocaleString('en-US', {maximumFractionDigits: 2})}</div>
+                </div>
+            </div>
+            
+            <p class="signal-analysis">${signal.analysis}</p>
+        `;
+        container.appendChild(signalEl);
+    });
+}
+
+function logoutVIP() {
+    localStorage.removeItem('vipUserEmail');
+    switchPage('dashboard');
+}
+
 setInterval(() => {
     fetchGlobalMetrics();
     fetchFearGreed();
