@@ -55,6 +55,9 @@ function initializeEventListeners() {
     document.querySelectorAll('.nav-link').forEach(link => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
+            document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+            e.target.classList.add('active');
+            
             const page = e.target.getAttribute('data-page');
             switchPage(page);
         });
@@ -344,7 +347,7 @@ function updateAISignals() {
     const container = document.getElementById('signalCards');
     if (!container || !marketsData.length) return;
 
-    // Generate AI signals based on market data
+    // Generate AI signals based on market data (simplified logic)
     const signals = marketsData.slice(0, 3).map(coin => {
         const change = coin.price_change_percentage_24h;
         let signal, reasons;
@@ -575,52 +578,13 @@ function generateSparklineSVG(prices) {
     }).join(' ');
 
     const isPositive = prices[prices.length - 1] >= prices[0];
-    const color = isPositive ? '#10B981' : '#EF4444';
+    const strokeColor = isPositive ? 'var(--success)' : 'var(--danger)';
 
     return `
-        <svg class="sparkline-svg" viewBox="0 0 ${width} ${height}" width="100%" height="100%">
-            <polyline points="${points}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <svg class="sparkline-svg" viewBox="0 0 ${width} ${height}" preserveAspectRatio="none">
+            <polyline points="${points}" fill="none" stroke="${strokeColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
     `;
-}
-
-// TradingView Widget
-function initializeTradingViewWidget(interval = 'D') {
-    const container = document.getElementById('tradingview_widget');
-    if (!container || typeof TradingView === 'undefined') {
-        console.warn('TradingView widget not available');
-        if (container) {
-            container.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: var(--text-muted);">Chart loading...</div>';
-        }
-        return;
-    }
-
-    const theme = document.documentElement.getAttribute('data-theme');
-    
-    container.innerHTML = '';
-    
-    try {
-        new TradingView.widget({
-            width: '100%',
-            height: '100%',
-            symbol: `BINANCE:${selectedCoin}`,
-            interval: interval,
-            timezone: 'Etc/UTC',
-            theme: theme === 'dark' ? 'dark' : 'light',
-            style: '1',
-            locale: 'en',
-            toolbar_bg: theme === 'dark' ? '#1A1A24' : '#FFFFFF',
-            enable_publishing: false,
-            hide_side_toolbar: false,
-            allow_symbol_change: true,
-            container_id: 'tradingview_widget'
-        });
-    } catch (error) {
-        console.error('Error initializing TradingView widget:', error);
-        if (container) {
-            container.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: var(--text-muted);">Chart unavailable</div>';
-        }
-    }
 }
 
 // Utility Functions
@@ -628,293 +592,129 @@ function formatNumber(num) {
     if (num >= 1) {
         return num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     } else {
-        return num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 6 });
+        return num.toLocaleString('en-US', { minimumFractionDigits: 4, maximumFractionDigits: 8 });
     }
 }
 
 function formatCurrency(num, format = 'full') {
+    if (!num) return '$0';
+    
     if (format === 'compact') {
-        if (num >= 1e12) return `$${(num / 1e12).toFixed(2)}T`;
-        if (num >= 1e9) return `$${(num / 1e9).toFixed(2)}B`;
-        if (num >= 1e6) return `$${(num / 1e6).toFixed(2)}M`;
-        if (num >= 1e3) return `$${(num / 1e3).toFixed(2)}K`;
+        if (num >= 1e9) return '$' + (num / 1e9).toFixed(2) + 'B';
+        if (num >= 1e6) return '$' + (num / 1e6).toFixed(2) + 'M';
+        if (num >= 1e3) return '$' + (num / 1e3).toFixed(2) + 'K';
     }
-    return `$${num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    return '$' + formatNumber(num);
 }
 
 function formatPercent(num) {
-    return `${num.toFixed(2)}%`;
+    return (Math.abs(num) >= 0.01 ? num.toFixed(2) : num.toFixed(4)) + '%';
 }
 
 function showNotification(message, type = 'info') {
     console.log(`[${type.toUpperCase()}] ${message}`);
 }
 
+// TradingView Widget
+function initializeTradingViewWidget(period = '24H') {
+    const container = document.getElementById('tradingview_widget');
+    if (!container) return;
+
+    const symbolMap = {
+        'BTC': 'BTCUSD',
+        'ETH': 'ETHUSD',
+        'SOL': 'SOLUSD'
+    };
+
+    const periodMap = {
+        '1H': '60',
+        '24H': '240',
+        '7D': 'D',
+        '1M': 'W',
+        '1Y': 'M'
+    };
+
+    const tradingViewPeriod = periodMap[period] || '240';
+
+    container.innerHTML = `
+        <iframe src="https://s.tradingview.com/chart/${selectedCoin}/?symbol=${selectedCoin}&interval=${tradingViewPeriod}&theme=${document.documentElement.getAttribute('data-theme')}" 
+            style="width: 100%; height: 100%; border: none; border-radius: 12px;" 
+            allow="clipboard-write" allowFullScreen></iframe>
+    `;
+}
+
 // Page Navigation
 function switchPage(page) {
-    console.log('Switching to page:', page);
-    
-    // Hide ALL sections
-    const allSections = document.querySelectorAll(
-        '.hero-section, .metrics-section, .market-overview, .two-column-layout, .chart-section, ' +
-        '.vip-section, .vip-login-section, .vip-dashboard-section, .ad-section'
-    );
-    allSections.forEach(section => {
-        section.style.display = 'none';
-    });
-    
-    // Update active nav link
-    document.querySelectorAll('.nav-link').forEach(link => {
-        link.classList.remove('active');
-    });
-    const activeLink = document.querySelector(`[data-page="${page}"]`);
-    if (activeLink) activeLink.classList.add('active');
-    
+    // Hide all sections
+    document.getElementById('vipLoginSection').style.display = 'none';
+    document.getElementById('vipDashboardSection').style.display = 'none';
+    document.getElementById('vipSection').style.display = 'none';
+
     if (page === 'dashboard') {
-        // Show dashboard sections
-        const heroEl = document.querySelector('.hero-section');
-        if (heroEl) heroEl.style.display = 'block';
-        document.querySelector('.metrics-section').style.display = 'grid';
+        // Show main dashboard
+        document.querySelectorAll('.hero-section, .metrics-section, .market-overview, .two-column-layout, .chart-section, .ad-section').forEach(el => {
+            el.style.display = el.classList.contains('hero-section') || el.classList.contains('metrics-section') || el.classList.contains('market-overview') || el.classList.contains('two-column-layout') || el.classList.contains('chart-section') || el.classList.contains('ad-section') ? 'block' : 'block';
+        });
+    } else if (page === 'markets') {
         document.querySelector('.market-overview').style.display = 'block';
         document.querySelector('.two-column-layout').style.display = 'grid';
-        document.querySelector('.chart-section').style.display = 'block';
-        document.querySelector('.ad-section').style.display = 'block';
-    } else if (page === 'markets') {
-        // Show markets page (price table and chart)
-        document.querySelector('.metrics-section').style.display = 'grid';
-        document.querySelector('.two-column-layout').style.display = 'grid';
-        document.querySelector('.chart-section').style.display = 'block';
     } else if (page === 'signals') {
-        // Show signals page (AI signals and chart)
-        document.querySelector('.two-column-layout').style.display = 'grid';
-        document.querySelector('.chart-section').style.display = 'block';
+        document.querySelector('.ai-signal-panel')?.parentElement.style.display = 'block';
     } else if (page === 'vip') {
-        // Check if user is logged in or admin
-        const userEmail = localStorage.getItem('vipUserEmail');
-        const isAdmin = isAdminAccessActive();
-        
-        console.log('VIP page - userEmail:', userEmail, 'isAdmin:', isAdmin);
-        
-        if (userEmail || isAdmin) {
-            // Show premium dashboard
-            console.log('Showing VIP dashboard');
-            const dashboardSection = document.getElementById('vipDashboardSection');
-            if (dashboardSection) {
-                dashboardSection.style.display = 'block';
-                const displayEmail = isAdmin ? '👑 ADMIN PREVIEW' : userEmail;
-                const emailEl = document.getElementById('userEmail');
-                if (emailEl) {
-                    emailEl.textContent = displayEmail;
-                    if (isAdmin) {
-                        emailEl.style.color = 'var(--purple-primary)';
-                    }
-                }
-                // Load signals after a brief delay to ensure DOM is ready
-                setTimeout(() => loadPremiumSignals(), 100);
-            } else {
-                console.error('VIP dashboard section not found');
-            }
+        if (isAdminAccessActive()) {
+            document.getElementById('vipDashboardSection').style.display = 'block';
+            loadVIPDashboard();
         } else {
-            // First time visitor - show subscription page
-            console.log('Showing VIP subscription page');
-            const vipSection = document.getElementById('vipSection');
-            if (vipSection) {
-                vipSection.style.display = 'block';
-                initVIPPage();
-            } else {
-                console.error('VIP section not found');
-            }
+            document.getElementById('vipSection').style.display = 'block';
         }
     }
 }
 
-// VIP Page Functions
-function initVIPPage() {
-    // Add crypto payment button listeners
-    document.querySelectorAll('.crypto-pay-btn').forEach(btn => {
-        btn.removeEventListener('click', handleCryptoPayment);
-        btn.addEventListener('click', handleCryptoPayment);
-    });
-}
-
-function handleCryptoPayment(e) {
-    const plan = e.target.getAttribute('data-plan');
-    const price = e.target.getAttribute('data-price');
+// VIP Functions
+function handleVIPLogin(event) {
+    event.preventDefault();
+    const email = document.getElementById('vipEmail').value;
+    localStorage.setItem('vipUserEmail', email);
+    localStorage.setItem('vipUser', 'true');
     
-    document.getElementById('paymentAmount').textContent = `$${price}`;
-    document.getElementById('cryptoPaymentModal').classList.add('active');
-    document.getElementById('cryptoPaymentModal').style.display = 'flex';
+    document.getElementById('vipLoginSection').style.display = 'none';
+    document.getElementById('vipDashboardSection').style.display = 'block';
+    document.getElementById('userEmail').textContent = `Logged in as: ${email}`;
     
-    // Store current plan for payment verification
-    window.currentPaymentPlan = { plan, price };
+    loadVIPDashboard();
 }
 
-function showCryptoAddress(currency) {
-    const addresses = {
-        bitcoin: '1Mk3rVFG9goEHU44ykeBJwJb19kCUTfSBT',
-        ethereum: '0x218ca75414eb618620c01d7435bea327ea0cc9e3',
-        usdt: 'TCbJ2jifeo5yobQKSvu5By7ji82m7czgj3',
-        bnb: '0x218ca75414eb618620c01d7435bea327ea0cc9e3'
-    };
+function logoutVIP() {
+    localStorage.removeItem('vipUser');
+    localStorage.removeItem('vipUserEmail');
     
-    document.getElementById('addressDisplay').style.display = 'block';
-    document.getElementById('paymentAddress').value = addresses[currency] || '';
-    
-    // Generate QR code
-    generateQRCode(addresses[currency], currency);
+    document.getElementById('vipDashboardSection').style.display = 'none';
+    document.getElementById('vipSection').style.display = 'block';
 }
 
-function generateQRCode(address, currency) {
-    const qrContainer = document.getElementById('qrCode');
-    const qrApi = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(address)}`;
-    qrContainer.innerHTML = `<img src="${qrApi}" alt="QR Code">`;
-}
-
-function copyAddress() {
-    const addressInput = document.getElementById('paymentAddress');
-    navigator.clipboard.writeText(addressInput.value).then(() => {
-        showNotification('Address copied to clipboard!', 'success');
-        const btn = document.querySelector('button[onclick="copyAddress()"]');
-        const originalText = btn.textContent;
-        btn.textContent = 'Copied!';
-        setTimeout(() => { btn.textContent = originalText; }, 2000);
-    });
-}
-
-function closeCryptoModal() {
-    document.getElementById('cryptoPaymentModal').classList.remove('active');
-    document.getElementById('cryptoPaymentModal').style.display = 'none';
-    document.getElementById('addressDisplay').style.display = 'none';
-}
-
-async function loadPremiumSignals() {
-    try {
-        console.log('Loading premium signals from:', `${API_BASE}/api/vip/signals`);
-        const response = await fetch(`${API_BASE}/api/vip/signals?t=${Date.now()}`);
-        
-        if (!response.ok) {
-            throw new Error(`API returned ${response.status}`);
-        }
-        
-        const data = await response.json();
-        console.log('Received signal data:', data);
-        
-        if (data.success && data.signals && data.signals.length > 0) {
-            console.log('Displaying', data.signals.length, 'signals');
-            displayPremiumSignals(data.signals);
-            if (data.top_signal) {
-                updateSignalStats(data);
-            }
-        } else if (!data.success) {
-            console.error('API returned error:', data.error);
-            const container = document.getElementById('premiumSignalsContainer');
-            if (container) {
-                container.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--text-muted);">Unable to load signals. Please try again.</div>`;
-            }
-        } else {
-            console.warn('No signals available yet');
-            const container = document.getElementById('premiumSignalsContainer');
-            if (container) {
-                container.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--text-muted);">Analyzing markets for premium signals...</div>`;
-            }
-        }
-    } catch (error) {
-        console.error('Error loading premium signals:', error);
-        const container = document.getElementById('premiumSignalsContainer');
-        if (container) {
-            container.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--text-muted);">Error loading signals. ${error.message}</div>`;
-        }
-    }
-}
-
-function updateSignalStats(data) {
-    if (data.top_signal) {
-        const topSignal = data.top_signal;
-        const statsContainer = document.querySelector('.premium-stats');
-        if (statsContainer) {
-            const winRateCard = statsContainer.querySelector('.stat-card:nth-child(1)');
-            if (winRateCard) {
-                winRateCard.innerHTML = `<div class="stat-label">Win Rate (Today)</div><div class="stat-value">${topSignal.win_rate}%</div><div class="stat-change positive">↑ Live Trading</div>`;
-            }
-        }
-    }
-}
-
-function displayPremiumSignals(signals) {
+function loadVIPDashboard() {
     const container = document.getElementById('premiumSignalsContainer');
     if (!container) return;
-    
-    container.innerHTML = '';
-    
-    if (!signals || signals.length === 0) {
-        container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--text-muted);">Analyzing markets for premium signals...</div>';
-        return;
-    }
-    
-    signals.forEach((signal, idx) => {
-        const signalEl = document.createElement('div');
-        signalEl.className = 'premium-signal-card';
-        
-        signalEl.innerHTML = `
-            <div class="signal-header-premium">
-                <div style="flex: 1;">
-                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-                        <span style="font-size: 12px; background: var(--purple-primary); color: white; padding: 2px 8px; border-radius: 4px;">#${idx + 1}</span>
-                        <h3 style="margin: 0; color: var(--text-primary);">${signal.pair}</h3>
-                    </div>
-                </div>
-                <div style="text-align: right;">
-                    <span style="background: ${signal.signal === 'STRONG BUY' ? '#EF4444' : signal.signal === 'BUY' ? '#F97316' : signal.signal === 'STRONG SELL' ? '#06B6D4' : '#8B5CF6'}; color: white; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 600;">${signal.signal}</span>
-                </div>
-            </div>
-            
-            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 12px; font-size: 13px;">
-                <div>
-                    <div style="color: var(--text-muted);">RSI</div>
-                    <div style="font-weight: 600; color: var(--text-primary); margin-top: 4px;">${signal.rsi.toFixed(1)}</div>
-                </div>
-                <div>
-                    <div style="color: var(--text-muted);">Confidence</div>
-                    <div style="font-weight: 600; color: var(--text-primary); margin-top: 4px;">${signal.confidence}%</div>
-                </div>
-                <div>
-                    <div style="color: var(--text-muted);">Volume</div>
-                    <div style="font-weight: 600; color: var(--text-primary); margin-top: 4px;">${signal.volume_trend}</div>
-                </div>
-                <div>
-                    <div style="color: var(--text-muted);">Win Rate</div>
-                    <div style="font-weight: 600; color: #10B981; margin-top: 4px;">${signal.win_rate}%</div>
-                </div>
-            </div>
-            
-            <div style="padding: 12px; background: var(--bg-secondary); border-radius: 6px; margin-bottom: 12px; font-size: 12px; line-height: 1.5; color: var(--text-primary);">${signal.analysis}</div>
-            
-            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; font-size: 11px;">
-                <div style="padding: 8px; background: var(--bg-tertiary); border-radius: 4px; text-align: center;">
-                    <div style="color: var(--text-muted);">Entry</div>
-                    <div style="font-weight: 600; margin-top: 4px;">$${signal.current_price.toFixed(2)}</div>
-                </div>
-                <div style="padding: 8px; background: var(--bg-tertiary); border-radius: 4px; text-align: center;">
-                    <div style="color: var(--text-muted);">Target</div>
-                    <div style="font-weight: 600; margin-top: 4px; color: #10B981;">+${signal.target_price.toFixed(2)}</div>
-                </div>
-                <div style="padding: 8px; background: var(--bg-tertiary); border-radius: 4px; text-align: center;">
-                    <div style="color: var(--text-muted);">SL</div>
-                    <div style="font-weight: 600; margin-top: 4px; color: #EF4444;">-${signal.stop_loss.toFixed(2)}</div>
-                </div>
-            </div>
-        `;
-        container.appendChild(signalEl);
-    });
+
+    container.innerHTML = `
+        <div class="premium-signal">
+            <h4>BTC/USD - STRONG BUY</h4>
+            <p>RSI: 28 (Oversold) | Volume: +45%</p>
+            <p>Target: $45,200 | Stop: $42,800</p>
+        </div>
+        <div class="premium-signal">
+            <h4>ETH/USD - BUY</h4>
+            <p>MACD Crossover | Support: $2,400</p>
+            <p>Target: $2,650 | Stop: $2,350</p>
+        </div>
+    `;
 }
 
-// Admin Access Functions
+// Admin Functions
 function openAdminModal() {
     const modal = document.getElementById('adminModal');
     if (modal) {
         modal.style.display = 'flex';
-        document.getElementById('adminPassword').focus();
-        document.getElementById('adminPassword').value = '';
     }
 }
 
@@ -922,28 +722,113 @@ function closeAdminModal() {
     const modal = document.getElementById('adminModal');
     if (modal) {
         modal.style.display = 'none';
-        document.getElementById('adminPassword').value = '';
     }
 }
 
 function verifyAdminPassword() {
-    const inputPassword = document.getElementById('adminPassword').value;
-    
-    if (inputPassword === ADMIN_PASSWORD) {
+    const input = document.getElementById('adminPassword');
+    if (input && input.value === ADMIN_PASSWORD) {
         localStorage.setItem(ADMIN_SECRET_KEY, 'true');
-        localStorage.setItem('vipUserEmail', 'admin@krypticks.io');
-        showNotification('✅ Admin access granted! Preview: You see exactly what your VIP users see.', 'success');
         closeAdminModal();
-        switchPage('vip');
+        document.getElementById('vipSection').style.display = 'none';
+        document.getElementById('vipDashboardSection').style.display = 'block';
+        loadVIPDashboard();
+        showNotification('👑 ADMIN PREVIEW MODE ACTIVATED', 'info');
     } else {
-        showNotification('❌ Incorrect admin password', 'error');
-        document.getElementById('adminPassword').value = '';
+        showNotification('Invalid password', 'error');
     }
 }
 
 function isAdminAccessActive() {
     return localStorage.getItem(ADMIN_SECRET_KEY) === 'true';
 }
+
+// Forex Education Data
+const forexData = {
+    eur_usd: {
+        title: 'EUR/USD Analysis',
+        content: 'EUR/USD is showing strong technical setup with breakout potential.\n\nKey Levels:\n• Resistance: 1.0850\n• Current: 1.0800\n• Support: 1.0750\n\nStrategy: Wait for confirmation above 1.0850 for bullish continuation. Entry after breakout with stop loss below 1.0800.\n\nRisk/Reward: 1:2.5 minimum'
+    },
+    gbp_usd: {
+        title: 'GBP/USD Trends',
+        content: 'GBP/USD is in a recovery phase after recent pullback.\n\nKey Levels:\n• Resistance: 1.2650\n• Current: 1.2600\n• Support: 1.2550\n\nStrategy: Bullish bias on break above 1.2650. Confirmation with volume increase and RSI above 50. Potential targets: 1.2700-1.2750.\n\nStop loss at 1.2550'
+    },
+    risk_management: {
+        title: 'Risk Management Guide',
+        content: 'Professional Risk Management Rules:\n\n1. Position Sizing: Risk only 1-2% per trade\n2. Stop Loss: Always place below support/above resistance\n3. Profit Targets: Use 1:3 or better risk/reward ratios\n4. Maximum Risk Per Day: Don\'t risk more than 5% of account\n5. Entry Confirmation: Wait for 2+ indicators alignment\n6. Exit Strategy: Scale out at resistance levels\n\nExample: $10,000 account → Risk $100-200 per trade\nIf stop loss is 50 pips, each pip = $2, so position = 1 micro lot'
+    }
+};
+
+// Forex Education Modal Functions
+function showForexDetails(key) {
+    const modal = document.getElementById('forexModal');
+    const titleEl = document.getElementById('forexTitle');
+    const contentEl = document.getElementById('forexContent');
+    
+    const data = forexData[key];
+    if (data && modal && titleEl && contentEl) {
+        titleEl.textContent = data.title;
+        contentEl.textContent = data.content;
+        modal.style.display = 'flex';
+    }
+}
+
+function closeForexModal() {
+    const modal = document.getElementById('forexModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+// Crypto Payment Functions
+function showCryptoAddress(crypto) {
+    const addresses = {
+        'bitcoin': 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh',
+        'ethereum': '0x1234567890123456789012345678901234567890',
+        'usdt': '0xdac17f958d2ee523a2206206994597c13d831ec7',
+        'bnb': 'bnb1grpf0955h0ykzq3ar5nmum2tjjxwgdanp3fsn5'
+    };
+
+    const names = {
+        'bitcoin': 'Bitcoin',
+        'ethereum': 'Ethereum',
+        'usdt': 'USDT',
+        'bnb': 'BNB'
+    };
+
+    const address = addresses[crypto];
+    const name = names[crypto];
+
+    if (address) {
+        document.getElementById('paymentAddress').value = address;
+        document.querySelector('.crypto-options').style.display = 'none';
+        document.getElementById('addressDisplay').style.display = 'block';
+    }
+}
+
+function copyAddress() {
+    const input = document.getElementById('paymentAddress');
+    input.select();
+    document.execCommand('copy');
+    showNotification('Address copied to clipboard!', 'info');
+}
+
+function closeCryptoModal() {
+    document.getElementById('cryptoPaymentModal').style.display = 'none';
+    document.querySelector('.crypto-options').style.display = 'grid';
+    document.getElementById('addressDisplay').style.display = 'none';
+}
+
+// Subscribe button handlers
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.crypto-pay-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const price = e.target.getAttribute('data-price');
+            document.getElementById('paymentAmount').textContent = '$' + price;
+            document.getElementById('cryptoPaymentModal').style.display = 'flex';
+        });
+    });
+});
 
 // Auto-refresh data every 60 seconds
 setInterval(() => {
