@@ -10,17 +10,15 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <!-- Header -->
     <header class="header">
         <div class="header-content">
             <div class="logo">krypticks</div>
-            
             <nav class="nav-links">
                 <a href="#dashboard" class="nav-link active" data-page="dashboard">Dashboard</a>
                 <a href="#markets" class="nav-link" data-page="markets">Markets</a>
                 <a href="#signals" class="nav-link" data-page="signals">Signals</a>
+                <a href="#vip" class="nav-link" data-page="vip">VIP</a>
             </nav>
-            
             <div class="header-right">
                 <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
                     <svg class="theme-icon sun-icon" width="20" height="20" viewBox="0 0 20 20" fill="none">
@@ -35,15 +33,12 @@
         </div>
     </header>
 
-    <!-- Main Container -->
     <main class="main-container">
-        <!-- Hero Section -->
         <section class="hero-section">
             <h1 class="hero-title">Live <span class="gradient-text">Crypto</span> Markets</h1>
             <p class="hero-subtitle">Real-time prices, AI insights, smart signals.</p>
         </section>
 
-        <!-- Global Metrics -->
         <section class="metrics-section">
             <div class="metric-card">
                 <div class="metric-label">Total Market Cap</div>
@@ -65,29 +60,17 @@
             </div>
         </section>
 
-        <!-- Market Overview Cards -->
         <section class="market-overview">
             <h2 class="section-title">Market Overview</h2>
             <div class="coin-grid" id="coinGrid">
-                <!-- Coin cards will be dynamically inserted here -->
-                <div class="coin-card skeleton">
-                    <div class="skeleton-shimmer"></div>
-                </div>
-                <div class="coin-card skeleton">
-                    <div class="skeleton-shimmer"></div>
-                </div>
-                <div class="coin-card skeleton">
-                    <div class="skeleton-shimmer"></div>
-                </div>
-                <div class="coin-card skeleton">
-                    <div class="skeleton-shimmer"></div>
-                </div>
+                <div class="coin-card skeleton"><div class="skeleton-shimmer"></div></div>
+                <div class="coin-card skeleton"><div class="skeleton-shimmer"></div></div>
+                <div class="coin-card skeleton"><div class="skeleton-shimmer"></div></div>
+                <div class="coin-card skeleton"><div class="skeleton-shimmer"></div></div>
             </div>
         </section>
 
-        <!-- Two Column Layout -->
         <div class="two-column-layout">
-            <!-- Left: Price Table -->
             <section class="price-table-section">
                 <div class="section-header">
                     <h2 class="section-title">Live Prices</h2>
@@ -110,20 +93,15 @@
                                 <th></th>
                             </tr>
                         </thead>
-                        <tbody id="priceTableBody">
-                            <!-- Rows will be dynamically inserted -->
-                        </tbody>
+                        <tbody id="priceTableBody"></tbody>
                     </table>
                 </div>
             </section>
 
-            <!-- Right: AI Signal Panel & Watchlist -->
             <aside class="sidebar">
-                <!-- AI Signal Panel -->
                 <div class="ai-signal-panel">
                     <h3 class="panel-title">🧠 AI Signals</h3>
                     <div class="signal-cards" id="signalCards">
-                        <!-- Signal cards will be dynamically inserted -->
                         <div class="signal-card-item">
                             <div class="signal-header">
                                 <div class="signal-coin">
@@ -142,20 +120,16 @@
                     </div>
                 </div>
 
-                <!-- Watchlist Widget -->
                 <div class="watchlist-widget">
                     <div class="watchlist-header">
                         <h3 class="panel-title">⭐ Watchlist</h3>
                         <button class="btn-icon" id="addWatchlistBtn">+</button>
                     </div>
-                    <div class="watchlist-items" id="watchlistItems">
-                        <!-- Watchlist items will be dynamically inserted -->
-                    </div>
+                    <div class="watchlist-items" id="watchlistItems"></div>
                 </div>
             </aside>
         </div>
 
-        <!-- Chart Section -->
         <section class="chart-section">
             <div class="chart-header">
                 <h2 class="section-title">Price Chart</h2>
@@ -170,13 +144,268 @@
                 </div>
             </div>
             <div class="chart-container">
-                <!-- TradingView Widget -->
                 <div id="tradingview_widget"></div>
+            </div>
+        </section>
+
+        <section class="vip-login-section" id="vipLoginSection" style="display: none;">
+            <div class="login-container">
+                <div class="login-card">
+                    <h1 class="login-title">Premium <span class="gradient-text">VIP Access</span></h1>
+                    <p class="login-subtitle">Login to access your premium signals and analysis</p>
+                    <form id="vipLoginForm" onsubmit="handleVIPLogin(event)">
+                        <div class="form-group">
+                            <label>Email Address</label>
+                            <input type="email" id="vipEmail" placeholder="your@email.com" required>
+                        </div>
+                        <button type="submit" class="btn-primary btn-full" style="margin-top: 24px;">Access Dashboard</button>
+                    </form>
+                    <p class="login-footer">Don't have VIP access? <a href="#vip" onclick="switchPage('vip')">Subscribe here</a></p>
+                </div>
+            </div>
+        </section>
+
+        <section class="vip-dashboard-section" id="vipDashboardSection" style="display: none;">
+            <div class="dashboard-header">
+                <div>
+                    <h1>Premium Trading Dashboard</h1>
+                    <p id="userEmail"></p>
+                </div>
+                <button class="btn-secondary" onclick="logoutVIP()">Logout</button>
+            </div>
+
+            <div class="premium-stats">
+                <div class="stat-card">
+                    <div class="stat-label">Signals This Week</div>
+                    <div class="stat-value">24</div>
+                    <div class="stat-change positive">↑ 45% win rate</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Potential Gain</div>
+                    <div class="stat-value">$8,240</div>
+                    <div class="stat-change positive">Based on avg $20 per signal</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Top Coin</div>
+                    <div class="stat-value">BTC</div>
+                    <div class="stat-change positive">5 strong signals</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Next Update</div>
+                    <div class="stat-value" id="nextUpdateTime">5m</div>
+                    <div class="stat-change">Real-time updates</div>
+                </div>
+            </div>
+
+            <div class="premium-section">
+                <h2 class="section-title">🎯 Premium AI Trading Signals</h2>
+                <div class="premium-signals" id="premiumSignalsContainer"></div>
+            </div>
+
+            <div class="premium-section">
+                <h2 class="section-title">📊 Advanced Analysis & Insights</h2>
+                <div class="analysis-grid">
+                    <div class="analysis-card">
+                        <h3>Market Momentum</h3>
+                        <div class="momentum-indicator"><div class="momentum-bar" style="width: 72%"></div></div>
+                        <p>Strong bullish momentum across top 5 coins</p>
+                    </div>
+                    <div class="analysis-card">
+                        <h3>Volatility Index</h3>
+                        <div class="volatility-value">38.2</div>
+                        <p>Moderate volatility - Good trading opportunities</p>
+                    </div>
+                    <div class="analysis-card">
+                        <h3>Volume Trend</h3>
+                        <div class="volume-badge">↑ INCREASING</div>
+                        <p>Volume spike detected - Momentum expected</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="premium-section">
+                <h2 class="section-title">🌍 Forex Education & Strategy</h2>
+                <div class="forex-grid">
+                    <div class="forex-card">
+                        <h4>EUR/USD Analysis</h4>
+                        <p>Breakout expected at 1.0850 resistance. Strong support at 1.0750.</p>
+                        <span class="badge">Read More →</span>
+                    </div>
+                    <div class="forex-card">
+                        <h4>GBP/USD Trends</h4>
+                        <p>Recovery pattern forming. Entry signal after confirmation above 1.2650.</p>
+                        <span class="badge">Read More →</span>
+                    </div>
+                    <div class="forex-card">
+                        <h4>Risk Management</h4>
+                        <p>Learn position sizing, stop losses, and profit targets for maximum gains.</p>
+                        <span class="badge">Read More →</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="vip-section" id="vipSection" style="display: none;">
+            <div class="vip-hero">
+                <h1 class="vip-title">Unlock Premium <span class="gradient-text">Trading Signals</span></h1>
+                <p class="vip-subtitle">Daily AI-powered signals, forex insights, and profit analysis</p>
+            </div>
+
+            <div class="vip-features">
+                <div class="feature-card">
+                    <div class="feature-icon">📊</div>
+                    <h3>Daily Trading Signals</h3>
+                    <p>Get 5+ premium signals daily with AI analysis and technical indicators (RSI, MACD, Support/Resistance)</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🌍</div>
+                    <h3>Forex Knowledge</h3>
+                    <p>Learn forex trading strategies and currency pair analysis for maximum profit potential</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🧠</div>
+                    <h3>AI Insights</h3>
+                    <p>Advanced machine learning analysis of market trends and price movements</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">💰</div>
+                    <h3>Profit Analysis</h3>
+                    <p>Real-time profit tracking and portfolio optimization recommendations</p>
+                </div>
+            </div>
+
+            <div class="pricing-section">
+                <h2 class="section-title">Choose Your Plan</h2>
+                <div class="pricing-grid">
+                    <div class="pricing-card">
+                        <div class="pricing-header">
+                            <h3>Monthly Pass</h3>
+                            <div class="price">$29<span>/month</span></div>
+                        </div>
+                        <ul class="pricing-features">
+                            <li>✓ 5+ daily signals</li>
+                            <li>✓ Technical analysis</li>
+                            <li>✓ Forex tutorials</li>
+                            <li>✓ Email support</li>
+                            <li>✓ Cancel anytime</li>
+                        </ul>
+                        <button class="btn-primary btn-full crypto-pay-btn" data-plan="monthly" data-price="29">Subscribe Now</button>
+                    </div>
+
+                    <div class="pricing-card highlighted">
+                        <div class="badge-recommended">RECOMMENDED</div>
+                        <div class="pricing-header">
+                            <h3>Quarterly Pass</h3>
+                            <div class="price">$69<span>/3 months</span></div>
+                            <div class="savings">Save $18</div>
+                        </div>
+                        <ul class="pricing-features">
+                            <li>✓ 5+ daily signals</li>
+                            <li>✓ Advanced analytics</li>
+                            <li>✓ Forex masterclass</li>
+                            <li>✓ Priority support</li>
+                            <li>✓ 3-month guarantee</li>
+                        </ul>
+                        <button class="btn-primary btn-full crypto-pay-btn" data-plan="quarterly" data-price="69">Subscribe Now</button>
+                    </div>
+
+                    <div class="pricing-card">
+                        <div class="pricing-header">
+                            <h3>Yearly Pass</h3>
+                            <div class="price">$199<span>/year</span></div>
+                            <div class="savings">Save $149</div>
+                        </div>
+                        <ul class="pricing-features">
+                            <li>✓ Unlimited signals</li>
+                            <li>✓ VIP community access</li>
+                            <li>✓ Forex certification</li>
+                            <li>✓ 24/7 support</li>
+                            <li>✓ Lifetime updates</li>
+                        </ul>
+                        <button class="btn-primary btn-full crypto-pay-btn" data-plan="yearly" data-price="199">Subscribe Now</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="cryptoPaymentModal" class="payment-modal" onclick="if(event.target.id === 'cryptoPaymentModal') closeCryptoModal()">
+                <div class="payment-modal-content">
+                    <button class="modal-close" onclick="closeCryptoModal()">✕</button>
+                    <h2>Select Payment Method</h2>
+                    <p class="payment-subtitle">Choose your preferred cryptocurrency</p>
+                    <div class="crypto-options">
+                        <button class="crypto-option" onclick="showCryptoAddress('bitcoin')">
+                            <div class="crypto-icon">₿</div>
+                            <div class="crypto-name">Bitcoin</div>
+                        </button>
+                        <button class="crypto-option" onclick="showCryptoAddress('ethereum')">
+                            <div class="crypto-icon">Ξ</div>
+                            <div class="crypto-name">Ethereum</div>
+                        </button>
+                        <button class="crypto-option" onclick="showCryptoAddress('usdt')">
+                            <div class="crypto-icon">₮</div>
+                            <div class="crypto-name">USDT</div>
+                        </button>
+                        <button class="crypto-option" onclick="showCryptoAddress('bnb')">
+                            <div class="crypto-icon">⬟</div>
+                            <div class="crypto-name">BNB</div>
+                        </button>
+                    </div>
+                    <div id="addressDisplay" style="display: none;">
+                        <h3>Send Payment To:</h3>
+                        <div class="address-container">
+                            <div id="qrCode"></div>
+                            <div class="address-box">
+                                <input type="text" id="paymentAddress" readonly>
+                                <button class="btn-secondary" onclick="copyAddress()">Copy Address</button>
+                            </div>
+                        </div>
+                        <p class="payment-amount">Amount: <strong id="paymentAmount">$29</strong></p>
+                        <p class="payment-info">After payment, you'll receive instant access to VIP signals</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="signals-preview">
+                <h2 class="section-title">Today's Premium Signals</h2>
+                <div class="signals-grid" id="vipSignalsGrid">
+                    <div class="vip-signal-card">
+                        <div class="signal-header-vip">
+                            <span class="signal-coin-vip">BTC/USD</span>
+                            <span class="signal-strength">STRONG BUY</span>
+                        </div>
+                        <p class="signal-detail">RSI 28 (oversold) + Volume spike 45%</p>
+                        <div class="signal-targets">
+                            <div>Target: $45,200</div>
+                            <div>Stop Loss: $42,800</div>
+                        </div>
+                    </div>
+                    <div class="vip-signal-card">
+                        <div class="signal-header-vip">
+                            <span class="signal-coin-vip">ETH/USD</span>
+                            <span class="signal-strength">BUY</span>
+                        </div>
+                        <p class="signal-detail">MACD bullish crossover + Support at $2,400</p>
+                        <div class="signal-targets">
+                            <div>Target: $2,650</div>
+                            <div>Stop Loss: $2,350</div>
+                        </div>
+                    </div>
+                    <div class="vip-signal-card">
+                        <div class="signal-header-vip">
+                            <span class="signal-coin-vip">SOL/USD</span>
+                            <span class="signal-strength">HOLD</span>
+                        </div>
+                        <p class="signal-detail">Consolidation phase - Waiting for breakout</p>
+                        <div class="signal-targets">
+                            <div>Wait for: $185 breakout</div>
+                            <div>Resistance: $190</div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </section>
     </main>
 
-    <!-- Ad Space -->
     <section class="ad-section">
         <div id="frame" style="width: 100%;margin: auto;position: relative; z-index: 99998;">
             <iframe data-aa='2418081' src='//acceptable.a-ads.com/2418081/?size=Adaptive'
@@ -184,19 +413,14 @@
         </div>
     </section>
 
-    <!-- Analysis Modal -->
-    <div id="analysisModal" class="analysis-modal" onclick="if(event.target.id === 'analysisModal') closeAnalysisModal()">
-        <!-- Modal content will be inserted here -->
-    </div>
+    <div id="analysisModal" class="analysis-modal" onclick="if(event.target.id === 'analysisModal') closeAnalysisModal()"></div>
 
-    <!-- Footer -->
     <footer class="footer">
         <div class="footer-content">
             <div class="footer-text">KRYPTICKS © 2025</div>
         </div>
     </footer>
 
-    <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-R57PLDVVZQ"></script>
     <script>
         window.dataLayer = window.dataLayer || [];
@@ -205,7 +429,6 @@
         gtag('config', 'G-R57PLDVVZQ');
     </script>
 
-    <!-- TradingView Widget Script -->
     <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
     <script src="app.js"></script>
 </body>
