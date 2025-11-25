@@ -87,6 +87,16 @@ function initializeEventListeners() {
             updateWatchlist();
         }
     });
+
+    // Crypto payment buttons
+    document.querySelectorAll('.crypto-pay-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const price = e.target.getAttribute('data-price');
+            document.getElementById('paymentAmount').textContent = '$' + price;
+            const modal = document.getElementById('cryptoPaymentModal');
+            if (modal) modal.style.display = 'flex';
+        });
+    });
 }
 
 // Fetch initial data
@@ -347,7 +357,7 @@ function updateAISignals() {
     const container = document.getElementById('signalCards');
     if (!container || !marketsData.length) return;
 
-    // Generate AI signals based on market data (simplified logic)
+    // Generate AI signals based on market data
     const signals = marketsData.slice(0, 3).map(coin => {
         const change = coin.price_change_percentage_24h;
         let signal, reasons;
@@ -620,12 +630,6 @@ function initializeTradingViewWidget(period = '24H') {
     const container = document.getElementById('tradingview_widget');
     if (!container) return;
 
-    const symbolMap = {
-        'BTC': 'BTCUSD',
-        'ETH': 'ETHUSD',
-        'SOL': 'SOLUSD'
-    };
-
     const periodMap = {
         '1H': '60',
         '24H': '240',
@@ -651,9 +655,8 @@ function switchPage(page) {
     document.getElementById('vipSection').style.display = 'none';
 
     if (page === 'dashboard') {
-        // Show main dashboard
-        document.querySelectorAll('.hero-section, .metrics-section, .market-overview, .two-column-layout, .chart-section, .ad-section').forEach(el => {
-            el.style.display = el.classList.contains('hero-section') || el.classList.contains('metrics-section') || el.classList.contains('market-overview') || el.classList.contains('two-column-layout') || el.classList.contains('chart-section') || el.classList.contains('ad-section') ? 'block' : 'block';
+        document.querySelectorAll('.hero-section, .metrics-section, .market-overview, .two-column-layout, .chart-section').forEach(el => {
+            el.style.display = 'block';
         });
     } else if (page === 'markets') {
         document.querySelector('.market-overview').style.display = 'block';
@@ -715,6 +718,8 @@ function openAdminModal() {
     const modal = document.getElementById('adminModal');
     if (modal) {
         modal.style.display = 'flex';
+        document.getElementById('adminPassword').focus();
+        document.getElementById('adminPassword').value = '';
     }
 }
 
@@ -722,20 +727,22 @@ function closeAdminModal() {
     const modal = document.getElementById('adminModal');
     if (modal) {
         modal.style.display = 'none';
+        document.getElementById('adminPassword').value = '';
     }
 }
 
 function verifyAdminPassword() {
-    const input = document.getElementById('adminPassword');
-    if (input && input.value === ADMIN_PASSWORD) {
+    const inputPassword = document.getElementById('adminPassword').value;
+    
+    if (inputPassword === ADMIN_PASSWORD) {
         localStorage.setItem(ADMIN_SECRET_KEY, 'true');
+        localStorage.setItem('vipUserEmail', 'admin@krypticks.io');
+        showNotification('✅ Admin access granted! Preview: You see exactly what your VIP users see.', 'success');
         closeAdminModal();
-        document.getElementById('vipSection').style.display = 'none';
-        document.getElementById('vipDashboardSection').style.display = 'block';
-        loadVIPDashboard();
-        showNotification('👑 ADMIN PREVIEW MODE ACTIVATED', 'info');
+        switchPage('vip');
     } else {
-        showNotification('Invalid password', 'error');
+        showNotification('❌ Incorrect admin password', 'error');
+        document.getElementById('adminPassword').value = '';
     }
 }
 
@@ -789,16 +796,7 @@ function showCryptoAddress(crypto) {
         'bnb': 'bnb1grpf0955h0ykzq3ar5nmum2tjjxwgdanp3fsn5'
     };
 
-    const names = {
-        'bitcoin': 'Bitcoin',
-        'ethereum': 'Ethereum',
-        'usdt': 'USDT',
-        'bnb': 'BNB'
-    };
-
     const address = addresses[crypto];
-    const name = names[crypto];
-
     if (address) {
         document.getElementById('paymentAddress').value = address;
         document.querySelector('.crypto-options').style.display = 'none';
@@ -818,17 +816,6 @@ function closeCryptoModal() {
     document.querySelector('.crypto-options').style.display = 'grid';
     document.getElementById('addressDisplay').style.display = 'none';
 }
-
-// Subscribe button handlers
-document.addEventListener('DOMContentLoaded', () => {
-    document.querySelectorAll('.crypto-pay-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            const price = e.target.getAttribute('data-price');
-            document.getElementById('paymentAmount').textContent = '$' + price;
-            document.getElementById('cryptoPaymentModal').style.display = 'flex';
-        });
-    });
-});
 
 // Auto-refresh data every 60 seconds
 setInterval(() => {
