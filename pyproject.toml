@@ -1,0 +1,13 @@
+[project]
+name = "krypticks"
+version = "1.0.0"
+description = "Professional Cryptocurrency Trading Signals Platform with AI Analysis"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.121.3",
+    "httpx>=0.28.1",
+    "python-dotenv>=1.2.1",
+    "requests>=2.32.5",
+    "uvicorn>=0.38.0",
+    "websockets>=15.0.1",
+]
