@@ -1,14 +1,18 @@
 // Krypticks - Main Application JavaScript
+
+// Configuration
 const API_BASE = window.location.origin;
 const WS_PROTOCOL = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
 const WS_URL = `${WS_PROTOCOL}//${window.location.host}/ws/prices`;
 
+// State management
 let marketsData = [];
 let globalData = {};
 let fearGreedData = {};
 let watchlist = JSON.parse(localStorage.getItem('watchlist') || '["bitcoin", "ethereum", "solana"]');
 let selectedCoin = 'BTCUSD';
 
+// Initialize application
 document.addEventListener('DOMContentLoaded', () => {
     initializeTheme();
     initializeEventListeners();
@@ -17,6 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeTradingViewWidget();
 });
 
+// Theme Management
 function initializeTheme() {
     const savedTheme = localStorage.getItem('theme') || 'dark';
     document.documentElement.setAttribute('data-theme', savedTheme);
@@ -30,6 +35,7 @@ document.getElementById('themeToggle')?.addEventListener('click', () => {
     initializeTradingViewWidget();
 });
 
+// Event Listeners
 function initializeEventListeners() {
     document.querySelectorAll('.nav-link').forEach(link => {
         link.addEventListener('click', (e) => {
@@ -64,6 +70,7 @@ function initializeEventListeners() {
     });
 }
 
+// Fetch initial data
 async function fetchInitialData() {
     try {
         await Promise.all([fetchMarkets(), fetchGlobalMetrics(), fetchFearGreed()]);
@@ -74,6 +81,7 @@ async function fetchInitialData() {
     }
 }
 
+// API Calls
 async function fetchMarkets() {
     try {
         const response = await fetch(`${API_BASE}/api/markets`);
@@ -315,32 +323,16 @@ function updateAISignals() {
 
         if (change > 5) {
             signal = 'strong-buy';
-            reasons = [
-                '• Strong upward momentum',
-                '• High trading volume',
-                '• Bullish market sentiment'
-            ];
+            reasons = ['• Strong upward momentum', '• High trading volume', '• Bullish market sentiment'];
         } else if (change > 2) {
             signal = 'buy';
-            reasons = [
-                '• Positive price action',
-                '• Moderate volume increase',
-                '• Market interest growing'
-            ];
+            reasons = ['• Positive price action', '• Moderate volume increase', '• Market interest growing'];
         } else if (change < -5) {
             signal = 'sell';
-            reasons = [
-                '• Downward trend detected',
-                '• Decreasing volume',
-                '• Bearish indicators'
-            ];
+            reasons = ['• Downward trend detected', '• Decreasing volume', '• Bearish indicators'];
         } else {
             signal = 'hold';
-            reasons = [
-                '• Consolidation phase',
-                '• Neutral indicators',
-                '• Await clearer signal'
-            ];
+            reasons = ['• Consolidation phase', '• Neutral indicators', '• Await clearer signal'];
         }
 
         return { coin, signal, reasons, change };
@@ -708,60 +700,105 @@ function showVIPDashboard(email) {
     loadPremiumSignals();
 }
 
-function loadPremiumSignals() {
-    fetch(`${API_BASE}/api/vip/signals`)
-        .then(r => r.json())
-        .then(data => {
-            if (data.success && data.signals) {
-                displayPremiumSignals(data.signals);
+async function loadPremiumSignals() {
+    try {
+        const response = await fetch(`${API_BASE}/api/vip/signals?t=${Date.now()}`);
+        const data = await response.json();
+        
+        if (data.success && data.signals) {
+            displayPremiumSignals(data.signals);
+            if (data.top_signal) {
+                updateSignalStats(data);
             }
-        })
-        .catch(e => console.error('Error loading premium signals:', e));
+        }
+    } catch (error) {
+        console.error('Error loading premium signals:', error);
+    }
+}
+
+function updateSignalStats(data) {
+    if (data.top_signal) {
+        const topSignal = data.top_signal;
+        const statsContainer = document.querySelector('.premium-stats');
+        if (statsContainer) {
+            const winRateCard = statsContainer.querySelector('.stat-card:nth-child(1)');
+            if (winRateCard) {
+                winRateCard.innerHTML = `<div class="stat-label">Win Rate (Today)</div><div class="stat-value">${topSignal.win_rate}%</div><div class="stat-change positive">↑ Live Trading</div>`;
+            }
+        }
+    }
 }
 
 function displayPremiumSignals(signals) {
     const container = document.getElementById('premiumSignalsContainer');
     if (!container) return;
     
-    signals.forEach(signal => {
+    container.innerHTML = '';
+    
+    if (!signals || signals.length === 0) {
+        container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--text-muted);">Analyzing markets for premium signals...</div>';
+        return;
+    }
+    
+    signals.forEach((signal, idx) => {
         const signalEl = document.createElement('div');
         signalEl.className = 'premium-signal-item';
+        
         signalEl.innerHTML = `
             <div class="signal-header-premium">
-                <div>
-                    <h3>${signal.pair}</h3>
+                <div style="flex: 1;">
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                        <span style="font-size: 12px; background: var(--purple-primary); color: white; padding: 2px 8px; border-radius: 4px;">#${idx + 1}</span>
+                        <h3 style="margin: 0;">${signal.pair}</h3>
+                    </div>
                     <p class="current-price">$${signal.current_price.toLocaleString('en-US', {maximumFractionDigits: 2})}</p>
                 </div>
-                <span class="signal-badge ${signal.signal.toLowerCase().replace(' ', '-')}">${signal.signal}</span>
+                <div style="text-align: right;">
+                    <span class="signal-badge ${signal.signal.toLowerCase().replace(/\s+/g, '-')}">${signal.signal}</span>
+                    <div style="margin-top: 4px; font-size: 11px; padding: 2px 6px; background: ${signal.risk_level.includes('LOW') ? 'rgba(16, 185, 129, 0.2)' : signal.risk_level.includes('HIGH') ? 'rgba(239, 68, 68, 0.2)' : 'rgba(245, 158, 11, 0.2)'}; border-radius: 4px; color: ${signal.risk_level.includes('LOW') ? 'var(--success)' : signal.risk_level.includes('HIGH') ? 'var(--danger)' : 'var(--warning)'};">${signal.risk_level}</div>
+                </div>
             </div>
             
             <div class="signal-analytics">
                 <div class="analytics-row">
-                    <span>RSI:</span>
-                    <strong>${signal.rsi}</strong>
+                    <span>RSI (14)</span>
+                    <strong style="color: ${signal.rsi < 30 ? 'var(--success)' : signal.rsi > 70 ? 'var(--danger)' : 'var(--warning)'}">${signal.rsi.toFixed(1)}</strong>
                 </div>
                 <div class="analytics-row">
-                    <span>Confidence:</span>
+                    <span>24h Chg</span>
+                    <strong style="color: ${signal.price_24h_change > 0 ? 'var(--success)' : 'var(--danger)'}">${signal.price_24h_change > 0 ? '+' : ''}${signal.price_24h_change.toFixed(2)}%</strong>
+                </div>
+                <div class="analytics-row">
+                    <span>Confidence</span>
                     <strong>${signal.confidence}%</strong>
                 </div>
                 <div class="analytics-row">
-                    <span>Volume Trend:</span>
-                    <strong>${signal.volume_trend.toFixed(1)}%</strong>
+                    <span>7d Trend</span>
+                    <strong style="color: ${signal.trend_7d > 0 ? 'var(--success)' : 'var(--danger)'}">${signal.trend_7d > 0 ? '↑' : '↓'} ${Math.abs(signal.trend_7d).toFixed(1)}%</strong>
                 </div>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 12px; background: var(--bg-tertiary); border-radius: 8px; margin: 12px 0; font-size: 12px;">
+                <div><span style="color: var(--text-muted);">MACD</span><div style="margin-top: 4px; font-weight: 600; color: ${signal.macd_positive ? 'var(--success)' : 'var(--danger)'}">${signal.macd_positive ? '✓ Bull' : '✗ Bear'}</div></div>
+                <div><span style="color: var(--text-muted);">Volume</span><div style="margin-top: 4px; font-weight: 600;">${signal.volume_trend}</div></div>
+                <div><span style="color: var(--text-muted);">Win Rate</span><div style="margin-top: 4px; font-weight: 600; color: var(--purple-primary);">${signal.win_rate}%</div></div>
             </div>
             
             <div class="signal-levels">
                 <div class="level-item">
                     <label>Support</label>
                     <div class="level-value">$${signal.support.toLocaleString('en-US', {maximumFractionDigits: 2})}</div>
+                    <span style="font-size: 11px; color: var(--text-muted);">${((signal.support - signal.current_price) / signal.current_price * -100).toFixed(1)}% down</span>
                 </div>
                 <div class="level-item">
                     <label>Resistance</label>
                     <div class="level-value">$${signal.resistance.toLocaleString('en-US', {maximumFractionDigits: 2})}</div>
+                    <span style="font-size: 11px; color: var(--text-muted);">${((signal.resistance - signal.current_price) / signal.current_price * 100).toFixed(1)}% up</span>
                 </div>
             </div>
             
             <p class="signal-analysis">${signal.analysis}</p>
+            <button onclick="selectCoin('${signal.symbol.toLowerCase()}'); showNotification('Chart loaded for ${signal.pair}');" style="margin-top: 12px; padding: 8px 12px; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-primary); cursor: pointer; font-size: 12px; width: 100%;">View Chart →</button>
         `;
         container.appendChild(signalEl);
     });
