@@ -114,6 +114,8 @@
 
     <!-- Main Container -->
     <main class="main-container">
+        <!-- Dashboard Section -->
+        <div id="dashboardSection">
         <!-- Hero Section -->
         <section class="hero-section">
             <h1 class="hero-title">Live <span class="gradient-text">Crypto</span> Markets</h1>
@@ -178,7 +180,8 @@
                                 <th></th>
                             </tr>
                         </thead>
-                        <tbody id="priceTableBody"></tbody>
+                        <tbody id="priceTableBody">
+                        </tbody>
                     </table>
                 </div>
             </section>
@@ -213,7 +216,8 @@
                         <h3 class="panel-title">⭐ Watchlist</h3>
                         <button class="btn-icon" id="addWatchlistBtn">+</button>
                     </div>
-                    <div class="watchlist-items" id="watchlistItems"></div>
+                    <div class="watchlist-items" id="watchlistItems">
+                    </div>
                 </div>
             </aside>
         </div>
@@ -236,6 +240,46 @@
                 <div id="tradingview_widget"></div>
             </div>
         </section>
+        </div>
+
+        <!-- Markets Section -->
+        <div id="marketsSection" style="display: none;">
+            <section class="hero-section" style="padding: 40px 0; text-align: center;">
+                <h1 class="hero-title">Market <span class="gradient-text">Analysis</span></h1>
+                <p class="hero-subtitle">Explore detailed market data and trends.</p>
+            </section>
+            <section class="market-overview">
+                <h2 class="section-title">Top Performers</h2>
+                <div class="coin-grid" id="coinGridMarkets">
+                    <div class="coin-card skeleton"><div class="skeleton-shimmer"></div></div>
+                    <div class="coin-card skeleton"><div class="skeleton-shimmer"></div></div>
+                    <div class="coin-card skeleton"><div class="skeleton-shimmer"></div></div>
+                    <div class="coin-card skeleton"><div class="skeleton-shimmer"></div></div>
+                </div>
+            </section>
+            <div class="two-column-layout">
+                <section class="price-table-section">
+                    <h2 class="section-title">All Markets</h2>
+                    <div class="price-table-container">
+                        <table class="price-table">
+                            <thead><tr><th>Coin</th><th>Price</th><th>24h Change</th><th>Volume</th><th>Market Cap</th></tr></thead>
+                            <tbody id="priceTableBodyMarkets"></tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+        </div>
+
+        <!-- Signals Section -->
+        <div id="signalsSection" style="display: none;">
+            <section class="hero-section" style="padding: 40px 0; text-align: center;">
+                <h1 class="hero-title">Trading <span class="gradient-text">Signals</span></h1>
+                <p class="hero-subtitle">AI-powered buy/sell recommendations.</p>
+            </section>
+            <div style="padding: 40px 20px; max-width: 1200px; margin: 0 auto;">
+                <div class="signal-cards" id="signalCardsPage" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;"></div>
+            </div>
+        </div>
 
         <!-- VIP Login Section -->
         <section class="vip-login-section" id="vipLoginSection" style="display: none;">
@@ -243,6 +287,7 @@
                 <div class="login-card">
                     <h1 class="login-title">Premium <span class="gradient-text">VIP Access</span></h1>
                     <p class="login-subtitle">Login to access your premium signals and analysis</p>
+                    
                     <form id="vipLoginForm" onsubmit="handleVIPLogin(event)">
                         <div class="form-group">
                             <label>Email Address</label>
@@ -250,6 +295,7 @@
                         </div>
                         <button type="submit" class="btn-primary btn-full" style="margin-top: 24px;">Access Dashboard</button>
                     </form>
+                    
                     <p class="login-footer">Don't have VIP access? <a href="#vip" onclick="switchPage('vip')">Subscribe here</a></p>
                 </div>
             </div>
@@ -292,7 +338,8 @@
             <!-- Premium Signals Section -->
             <div class="premium-section">
                 <h2 class="section-title">🎯 Premium AI Trading Signals</h2>
-                <div class="premium-signals" id="premiumSignalsContainer"></div>
+                <div class="premium-signals" id="premiumSignalsContainer">
+                </div>
             </div>
 
             <!-- Advanced Analysis -->
@@ -301,7 +348,9 @@
                 <div class="analysis-grid">
                     <div class="analysis-card">
                         <h3>Market Momentum</h3>
-                        <div class="momentum-indicator"><div class="momentum-bar" style="width: 72%"></div></div>
+                        <div class="momentum-indicator">
+                            <div class="momentum-bar" style="width: 72%"></div>
+                        </div>
                         <p>Strong bullish momentum across top 5 coins</p>
                     </div>
                     <div class="analysis-card">
@@ -391,7 +440,7 @@
                         <button class="btn-primary btn-full crypto-pay-btn" data-plan="monthly" data-price="29">Subscribe Now</button>
                     </div>
 
-                    <!-- Quarterly Plan -->
+                    <!-- Quarterly Plan (Recommended) -->
                     <div class="pricing-card highlighted">
                         <div class="badge-recommended">RECOMMENDED</div>
                         <div class="pricing-header">
@@ -409,7 +458,7 @@
                         <button class="btn-primary btn-full crypto-pay-btn" data-plan="quarterly" data-price="69">Subscribe Now</button>
                     </div>
 
-                    <!-- Annual Plan -->
+                    <!-- Annual Plan (Best Value) -->
                     <div class="pricing-card">
                         <div class="pricing-header">
                             <h3>Yearly Pass</h3>
@@ -434,6 +483,7 @@
                     <button class="modal-close" onclick="closeCryptoModal()">✕</button>
                     <h2>Select Payment Method</h2>
                     <p class="payment-subtitle">Choose your preferred cryptocurrency</p>
+                    
                     <div class="crypto-options">
                         <button class="crypto-option" onclick="showCryptoAddress('bitcoin')">
                             <div class="crypto-icon">₿</div>
@@ -452,121 +502,44 @@
                             <div class="crypto-name">BNB</div>
                         </button>
                     </div>
+                    
                     <div id="addressDisplay" style="display: none;">
                         <h3>Send Payment To:</h3>
                         <div class="address-container">
-                            <div id="qrCode"></div>
                             <div class="address-box">
                                 <input type="text" id="paymentAddress" readonly>
-                                <button class="btn-secondary" onclick="copyAddress()">Copy Address</button>
+                                <button class="btn-secondary" style="width: auto; padding: 10px 16px;" onclick="copyAddress()">Copy</button>
                             </div>
                         </div>
                         <p class="payment-amount">Amount: <strong id="paymentAmount">$29</strong></p>
-                        <p class="payment-info">After payment, you'll receive instant access to VIP signals</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Daily Signals Preview -->
-            <div class="signals-preview">
-                <h2 class="section-title">Today's Premium Signals</h2>
-                <div class="signals-grid" id="vipSignalsGrid">
-                    <div class="vip-signal-card">
-                        <div class="signal-header-vip">
-                            <span class="signal-coin-vip">BTC/USD</span>
-                            <span class="signal-strength">STRONG BUY</span>
-                        </div>
-                        <p class="signal-detail">RSI 28 (oversold) + Volume spike 45%</p>
-                        <div class="signal-targets">
-                            <div>Target: $45,200</div>
-                            <div>Stop Loss: $42,800</div>
-                        </div>
-                    </div>
-                    <div class="vip-signal-card">
-                        <div class="signal-header-vip">
-                            <span class="signal-coin-vip">ETH/USD</span>
-                            <span class="signal-strength">BUY</span>
-                        </div>
-                        <p class="signal-detail">MACD bullish crossover + Support at $2,400</p>
-                        <div class="signal-targets">
-                            <div>Target: $2,650</div>
-                            <div>Stop Loss: $2,350</div>
-                        </div>
-                    </div>
-                    <div class="vip-signal-card">
-                        <div class="signal-header-vip">
-                            <span class="signal-coin-vip">SOL/USD</span>
-                            <span class="signal-strength">HOLD</span>
-                        </div>
-                        <p class="signal-detail">Consolidation phase - Waiting for breakout</p>
-                        <div class="signal-targets">
-                            <div>Wait for: $185 breakout</div>
-                            <div>Resistance: $190</div>
-                        </div>
                     </div>
                 </div>
             </div>
         </section>
     </main>
 
-    <!-- Ad Space -->
-    <section class="ad-section">
-        <div id="frame" style="width: 100%;margin: auto;position: relative; z-index: 99998;">
-            <iframe data-aa='2418081' src='//acceptable.a-ads.com/2418081/?size=Adaptive' style='border:0; padding:0; width:70%; height:auto; overflow:hidden;display: block;margin: auto'></iframe>
-        </div>
-    </section>
-
-    <!-- Analysis Modal -->
-    <div id="analysisModal" class="analysis-modal" onclick="if(event.target.id === 'analysisModal') closeAnalysisModal()"></div>
-
-    <!-- Forex Education Modal -->
-    <div id="forexModal" class="analysis-modal" style="display: none;" onclick="if(event.target.id === 'forexModal') closeForexModal()">
+    <!-- Admin Modal -->
+    <div id="adminModal" class="analysis-modal">
         <div class="modal-content">
-            <button class="modal-close" onclick="closeForexModal()">×</button>
-            <div class="modal-header">
-                <h2 id="forexTitle">Forex Education</h2>
-            </div>
-            <div id="forexContent" style="line-height: 1.8; white-space: pre-wrap; color: var(--text-primary); font-size: 14px; padding: 20px 0;"></div>
-            <div class="analysis-actions">
-                <button class="btn-secondary" onclick="closeForexModal()">Close</button>
-            </div>
+            <button class="modal-close" onclick="closeAdminModal()">✕</button>
+            <h2>Admin Access</h2>
+            <p style="color: var(--text-secondary); margin-bottom: 20px;">Enter password to access VIP preview</p>
+            <form onsubmit="event.preventDefault(); verifyAdminPassword();">
+                <input type="password" id="adminPassword" placeholder="Enter password" style="width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-tertiary); color: var(--text-primary); margin-bottom: 16px;">
+                <button type="submit" class="btn-primary btn-full">Verify</button>
+            </form>
         </div>
     </div>
 
-    <!-- Admin Access Modal -->
-    <div id="adminModal" class="analysis-modal" style="display: none;" onclick="if(event.target.id === 'adminModal') closeAdminModal()">
-        <div class="modal-content" style="max-width: 400px;">
-            <button class="modal-close" onclick="closeAdminModal()">×</button>
-            <div class="modal-header">
-                <h2>🔐 Admin Access</h2>
-            </div>
-            <p style="text-align: center; color: var(--text-muted); margin-bottom: 24px;">Enter your unique admin password to preview VIP signals</p>
-            <div style="display: flex; flex-direction: column; gap: 12px;">
-                <input type="password" id="adminPassword" placeholder="Enter admin password" style="padding: 12px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-secondary); color: var(--text-primary); font-size: 14px;">
-                <button onclick="verifyAdminPassword()" style="padding: 12px; background: var(--purple-primary); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px;">Unlock Admin Preview</button>
-                <button onclick="closeAdminModal()" style="padding: 12px; background: var(--bg-tertiary); color: var(--text-primary); border: 1px solid var(--border-color); border-radius: 8px; cursor: pointer; font-size: 14px;">Cancel</button>
-            </div>
+    <!-- Forex Modal -->
+    <div id="forexModal" class="analysis-modal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeForexModal()">✕</button>
+            <h2 id="forexTitle">Forex Education</h2>
+            <p id="forexContent" style="color: var(--text-secondary); white-space: pre-wrap; line-height: 1.8;"></p>
         </div>
     </div>
 
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="footer-content">
-            <div class="footer-text">KRYPTICKS © 2025</div>
-        </div>
-    </footer>
-
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-R57PLDVVZQ"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
-        gtag('config', 'G-R57PLDVVZQ');
-    </script>
-
-    <!-- TradingView Widget Script -->
-    <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
     <script src="app.js"></script>
 </body>
 </html>
